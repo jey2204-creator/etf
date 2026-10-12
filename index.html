@@ -15,32 +15,36 @@
 <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=IBM+Plex+Mono:wght@400;600&display=swap">
 <style>
-/* Layout: 手機優先。上方摘要橫滑、中間卡片清單、底部分頁列，點卡片彈出底部面板 */
+/* Layout: 手機優先。上方資料狀態與摘要、中間卡片清單、底部分頁列，點卡片彈出底部面板 */
 :root{
   --bg:#f3f5f3; --surface:#ffffff; --fg:#1b2220; --muted:#66706b; --line:#dfe3e0;
   --accent:#1f6b5c; --on-accent:#ffffff; --up:#c8312b; --down:#1f8a4c; --up-bg:#fdeceb; --down-bg:#e6f3eb;
-  --scrim:rgba(10,14,12,.45);
+  --warn:#9a6700; --warn-bg:#fff5d6; --scrim:rgba(10,14,12,.45);
   --sans:"Noto Sans TC",system-ui,-apple-system,"PingFang TC",sans-serif;
   --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
   --bg:#0f1312; --surface:#1a201e; --fg:#e7ece9; --muted:#97a19c; --line:#2b3330;
   --accent:#5fbfa8; --on-accent:#0f1312; --up:#ff6b62; --down:#4fca82; --up-bg:#3a1e1c; --down-bg:#15301f;
-  --scrim:rgba(0,0,0,.6); color-scheme:dark}}
+  --warn:#f2c14e; --warn-bg:#352a0e; --scrim:rgba(0,0,0,.6); color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#0f1312; --surface:#1a201e; --fg:#e7ece9; --muted:#97a19c; --line:#2b3330;
   --accent:#5fbfa8; --on-accent:#0f1312; --up:#ff6b62; --down:#4fca82; --up-bg:#3a1e1c; --down-bg:#15301f;
-  --scrim:rgba(0,0,0,.6); color-scheme:dark}
+  --warn:#f2c14e; --warn-bg:#352a0e; --scrim:rgba(0,0,0,.6); color-scheme:dark}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0}img{max-width:100%}[hidden]{display:none!important}
 body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:15px;line-height:1.5}
-.page{max-width:640px;margin:0 auto;padding:calc(16px + env(safe-area-inset-top,0px)) calc(16px + env(safe-area-inset-right,0px))  calc(84px + env(safe-area-inset-bottom,0px)) calc(16px + env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:14px}
+.page{max-width:640px;margin:0 auto;padding:calc(16px + env(safe-area-inset-top,0px)) calc(16px + env(safe-area-inset-right,0px)) calc(84px + env(safe-area-inset-bottom,0px)) calc(16px + env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:14px}
 h1{font-size:1.45rem;margin:0}
 h2{font-size:1.1rem;margin:0}
+a{color:var(--accent)}
 .sub{color:var(--muted);font-size:.85rem;margin:0}
-.notice{background:var(--up-bg);color:var(--fg);border-radius:10px;padding:8px 12px;font-size:.8rem}
-.notice b{color:var(--up)}
 .num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.status{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px 12px;font-size:.8rem;color:var(--muted)}
+.status b{color:var(--fg);font-family:var(--mono);font-weight:500}
+.warnline{margin-top:6px;background:var(--warn-bg);color:var(--fg);border-radius:8px;padding:6px 10px}
+.warnline b{color:var(--warn)}
+.badge{display:inline-block;font-size:.68rem;font-weight:600;color:var(--warn);background:var(--warn-bg);border-radius:4px;padding:0 6px;margin-left:6px;vertical-align:2px}
 .hscroll{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;margin:0 -16px;padding:0 16px 4px;scrollbar-width:none}
 .hscroll::-webkit-scrollbar{display:none}
 .stat{flex:0 0 46%;scroll-snap-align:start;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
@@ -70,9 +74,12 @@ select{font:inherit;font-size:.85rem;padding:6px 10px;border-radius:8px;border:1
 .barw{height:8px;background:var(--line);border-radius:4px;overflow:hidden}
 .barw i{display:block;height:100%;background:var(--accent);border-radius:4px}
 .kv{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-.kv div{background:var(--bg);border-radius:10px;padding:8px 10px}
+.kv div{background:var(--bg);border-radius:10px;padding:8px 10px;min-width:0}
 .kv .k{font-size:.7rem;color:var(--muted)}
-.kv .v{font-family:var(--mono);font-weight:600}
+.kv .v{font-family:var(--mono);font-weight:600;overflow-wrap:anywhere}
+.rows{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:.86rem}
+.rows dt{color:var(--muted)}
+.rows dd{margin:0;text-align:right;font-family:var(--mono)}
 .matrix{overflow-x:auto}
 .matrix table{border-collapse:separate;border-spacing:3px;font-size:.78rem}
 .matrix th{font-family:var(--mono);font-weight:500;color:var(--muted);padding:2px 4px}
@@ -84,20 +91,21 @@ select{font:inherit;font-size:.85rem;padding:6px 10px;border-radius:8px;border:1
 .big{font-family:var(--mono);font-size:1.5rem;font-weight:600}
 .hint{font-size:.78rem;color:var(--muted);margin:8px 0 0}
 .warn{color:var(--up);font-weight:600}
-/* 底部分頁列 */
+.src{display:grid;grid-template-columns:1fr auto;gap:4px 12px;font-size:.8rem}
+.src .ok{color:var(--down)} .src .ng{color:var(--up)}
+.empty{padding:24px;text-align:center;color:var(--muted)}
 nav.tabs{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);display:flex;justify-content:center;padding:6px 8px calc(6px + env(safe-area-inset-bottom,0px));z-index:10}
 nav.tabs .in{display:grid;grid-template-columns:repeat(3,1fr);width:100%;max-width:640px}
 nav.tabs button{all:unset;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 0;font-size:.72rem;color:var(--muted);border-radius:10px}
 nav.tabs button svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8}
 nav.tabs button[aria-selected="true"]{color:var(--accent);font-weight:600}
 button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-/* 底部面板 */
 .scrim{position:fixed;inset:0;background:var(--scrim);z-index:20}
-.sheet{position:fixed;left:0;right:0;bottom:0;z-index:21;background:var(--surface);border-radius:18px 18px 0 0;max-height:82%;overflow-y:auto;padding:8px 16px calc(20px + env(safe-area-inset-bottom,0px));max-width:640px;margin:0 auto;animation:up .22s ease-out}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:21;background:var(--surface);border-radius:18px 18px 0 0;max-height:85%;overflow-y:auto;padding:8px 16px calc(20px + env(safe-area-inset-bottom,0px));max-width:640px;margin:0 auto;animation:up .22s ease-out}
 .grab{width:40px;height:5px;border-radius:3px;background:var(--line);margin:4px auto 12px}
 .sheet-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:12px}
 .close{all:unset;cursor:pointer;width:32px;height:32px;border-radius:50%;background:var(--bg);display:grid;place-items:center;font-size:1.1rem;color:var(--muted)}
-.sheet section{display:flex;flex-direction:column;gap:10px;margin-top:14px}
+.sheet section{display:flex;flex-direction:column;gap:10px;margin-top:16px}
 @keyframes up{from{transform:translateY(40px);opacity:.6}to{transform:none;opacity:1}}
 @media (prefers-reduced-motion:reduce){.sheet{animation:none}.card:active{transform:none}}
 @media (min-width:560px){.stat{flex-basis:30%}}
@@ -109,7 +117,7 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
     <h1>ETF 觀察表</h1>
     <p class="sub" id="sub">10 檔追蹤清單</p>
   </header>
-  <div class="notice">⚠️ <b>示意數據</b>：數字都是假資料，用來確認手機排版，不是實際行情。</div>
+  <div class="status" id="status">正在載入資料…</div>
 
   <!-- 分頁 1：總覽 -->
   <div id="tab-list" class="tab">
@@ -128,15 +136,20 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
           <option value="vol">成交量 大→小</option>
         </select>
       </div>
-      <div class="list" id="list"></div>
+      <div class="list" id="list"><div class="empty">正在載入資料…</div></div>
+      <div class="panel">
+        <div class="bar-row" style="margin-bottom:8px"><b>資料來源</b><span class="sub" id="genAt"></span></div>
+        <div class="src" id="sources"></div>
+        <p class="hint">每個交易日 14:23、17:43 自動更新。管理費為手動查核的費率，依目前規模換算級距。</p>
+      </div>
     </div>
   </div>
 
   <!-- 分頁 2：成份股重疊 -->
   <div id="tab-overlap" class="tab" hidden>
     <div style="display:flex;flex-direction:column;gap:12px">
-      <h2>成份股重疊度</h2>
-      <p class="sub">兩檔共同持股的權重重疊比例。數字越高，代表越像同一檔，一起持有分散效果越差。</p>
+      <h2>成份股重疊度<span class="badge">示意資料</span></h2>
+      <p class="sub">兩檔共同持股的權重重疊比例。數字越高，代表越像同一檔，一起持有分散效果越差。成份股尚未接上投信每日清單，目前的權重是示意值。</p>
       <div class="panel matrix" id="matrix"></div>
       <div class="panel" id="overlapNote"></div>
     </div>
@@ -146,15 +159,15 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
   <div id="tab-pf" class="tab" hidden>
     <div style="display:flex;flex-direction:column;gap:12px">
       <h2>我的組合穿透</h2>
-      <p class="sub">輸入持有張數，算出你實際持有哪些個股、各佔多少。</p>
+      <p class="sub">輸入持有張數，算出你實際持有哪些個股、各佔多少。組合市值用真實市價；個股拆解用的成份股權重目前是示意值。</p>
       <div class="panel" id="pfInputs"></div>
       <div class="panel">
-        <div class="sub">組合市值</div>
+        <div class="sub">組合市值（最新收盤價）</div>
         <div class="big" id="pfTotal"></div>
         <div id="pfWarn" class="hint"></div>
       </div>
       <div class="panel">
-        <div class="sub" style="margin-bottom:10px">實際個股曝險（前 8 大）</div>
+        <div class="sub" style="margin-bottom:10px">實際個股曝險（前 8 大）<span class="badge">示意資料</span></div>
         <div class="hold" id="pfExpo"></div>
         <p class="hint">以各檔前五大持股計算，其餘歸入「其他」。</p>
       </div>
@@ -174,135 +187,190 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
 <div class="sheet" id="sheet" role="dialog" aria-modal="true" hidden></div>
 
 <script>
-// ===== 示意數據（非實際行情）=====
-const ETFS=[
- {code:"0050",name:"元大台灣50",type:"市值型",px:186.4,nav:186.1,aum:5200,holders:112,fee:0.10,ter:0.18,yld:2.6,div:"半年配",vol:18500,
-  h:[["台積電",4120000,61.2],["鴻海",1980000,4.8],["聯發科",210000,4.1],["台達電",320000,2.3],["廣達",380000,1.9]]},
- {code:"0056",name:"元大高股息",type:"高股息",px:36.85,nav:36.92,aum:4300,holders:118,fee:0.30,ter:0.48,yld:7.4,div:"季配",vol:42000,
-  h:[["聯詠",9800000,4.6],["華碩",7600000,4.1],["廣達",11200000,3.9],["仁寶",58000000,3.5],["英業達",42000000,3.3]]},
- {code:"00878",name:"國泰永續高股息",type:"高股息",px:21.62,nav:21.58,aum:4100,holders:162,fee:0.25,ter:0.40,yld:6.9,div:"季配",vol:51000,
-  h:[["聯發科",3100000,5.2],["廣達",18500000,4.8],["華碩",9200000,4.5],["聯詠",10400000,4.2],["中信金",95000000,3.9]]},
- {code:"00919",name:"群益台灣精選高息",type:"高股息",px:23.14,nav:22.98,aum:3500,holders:98,fee:0.30,ter:0.45,yld:9.1,div:"季配",vol:63000,
-  h:[["聯發科",2600000,9.1],["長榮",36000000,8.4],["瑞昱",9500000,6.2],["聯詠",8200000,5.6],["中華電",30000000,4.8]]},
- {code:"006208",name:"富邦台50",type:"市值型",px:109.3,nav:109.2,aum:2200,holders:46,fee:0.15,ter:0.22,yld:2.7,div:"半年配",vol:6200,
-  h:[["台積電",1680000,61.0],["鴻海",810000,4.8],["聯發科",86000,4.1],["台達電",130000,2.3],["廣達",156000,1.9]]},
- {code:"00981A",name:"主動統一台股增長",type:"主動式",px:15.82,nav:15.70,aum:420,holders:21,fee:0.85,ter:1.10,yld:0,div:"不配息",vol:9800,
-  h:[["台積電",52000,9.6],["奇鋐",210000,7.8],["台光電",168000,6.9],["智邦",96000,6.1],["川湖",21000,5.4]]},
- {code:"00631L",name:"元大台灣50正2",type:"槓桿",px:268.5,nav:266.9,aum:620,holders:17,fee:1.00,ter:1.15,yld:0,div:"不配息",vol:3100,
-  h:[["台指期貨",3200000,198.5],["0050",1100000,1.6]]},
- {code:"00937B",name:"群益ESG投等債20+",type:"債券",px:15.42,nav:15.47,aum:1900,holders:88,fee:0.30,ter:0.38,yld:5.2,div:"月配",vol:7400,
-  h:[["Oracle 2054",null,3.1],["AT&T 2053",null,2.9],["Comcast 2055",null,2.7],["Verizon 2052",null,2.6],["Pfizer 2053",null,2.4]]},
- {code:"009816",name:"凱基台灣TOP50",type:"市值型",px:11.36,nav:11.34,aum:880,holders:39,fee:0.00,ter:0.08,yld:0,div:"不配息",vol:12000,
-  h:[["台積電",360000,48.5],["鴻海",190000,5.9],["聯發科",22000,5.1],["台達電",33000,3.0],["廣達",39000,2.4]]},
- {code:"0052",name:"富邦科技",type:"市值型",px:212.8,nav:213.1,aum:310,holders:9,fee:0.15,ter:0.25,yld:1.9,div:"年配",vol:900,
-  h:[["台積電",420000,65.3],["聯發科",42000,8.6],["鴻海",120000,3.0],["台達電",30000,2.3],["日月光投控",68000,1.4]]}
-];
-ETFS.forEach(e=>e.prem=(e.px-e.nav)/e.nav*100);
-const byCode=Object.fromEntries(ETFS.map(e=>[e.code,e]));
-const f=(n,d=2)=>n.toLocaleString("zh-TW",{minimumFractionDigits:d,maximumFractionDigits:d});
-const premHTML=p=>`<span class="prem ${p>=0.5?"hi":p<=-0.5?"lo":""}">${p>0?"+":""}${f(p)}%</span>`;
+// ===== 成份股：示意權重（第 4 步改接投信每日申購買回清單）=====
+const HOLD={
+ "0050":[["台積電",61.2],["鴻海",4.8],["聯發科",4.1],["台達電",2.3],["廣達",1.9]],
+ "0056":[["聯詠",4.6],["華碩",4.1],["廣達",3.9],["仁寶",3.5],["英業達",3.3]],
+ "00878":[["聯發科",5.2],["廣達",4.8],["華碩",4.5],["聯詠",4.2],["中信金",3.9]],
+ "00919":[["聯發科",9.1],["長榮",8.4],["瑞昱",6.2],["聯詠",5.6],["中華電",4.8]],
+ "006208":[["台積電",61.0],["鴻海",4.8],["聯發科",4.1],["台達電",2.3],["廣達",1.9]],
+ "00981A":[["台積電",9.6],["奇鋐",7.8],["台光電",6.9],["智邦",6.1],["川湖",5.4]],
+ "00631L":[["台指期貨",198.5],["0050",1.6]],
+ "00937B":[["Oracle 2054",3.1],["AT&T 2053",2.9],["Comcast 2055",2.7],["Verizon 2052",2.6],["Pfizer 2053",2.4]],
+ "009816":[["台積電",48.5],["鴻海",5.9],["聯發科",5.1],["台達電",3.0],["廣達",2.4]],
+ "0052":[["台積電",65.3],["聯發科",8.6],["鴻海",3.0],["台達電",2.3],["日月光投控",1.4]]
+};
+
+let DATA=null, ETFS=[], byCode={};
 const $=id=>document.getElementById(id);
+const isNum=v=>typeof v==="number"&&isFinite(v);
+const f=(n,d=2)=>isNum(n)?n.toLocaleString("zh-TW",{minimumFractionDigits:d,maximumFractionDigits:d}):"—";
+const md=s=>s?`${+s.slice(5,7)}/${+s.slice(8,10)}`:"—";
+const ymd=s=>s?s.replaceAll("-","/"):"—";
+const premHTML=p=>isNum(p)?`<span class="prem ${p>=0.5?"hi":p<=-0.5?"lo":""}">${p>0?"+":""}${f(p)}%</span>`:'<span class="prem">—</span>';
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const store={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+function fmtTime(iso){if(!iso)return"—";const d=new Date(iso);if(isNaN(d))return iso;return d.toLocaleString("zh-TW",{timeZone:"Asia/Taipei",month:"numeric",day:"numeric",hour:"2-digit",minute:"2-digit",hour12:false})}
+const fNav=n=>{if(!isNum(n))return"—";const dec=(String(n).split(".")[1]||"").length;return f(n,Math.min(4,Math.max(2,dec)))};
+const holdersWan=e=>isNum(e.holders)?e.holders/1e4:null;
+const yieldOf=e=>e.div&&isNum(e.div.yield)?e.div.yield:null;
+const feeOf=e=>e.fee&&isNum(e.fee.mgmt)?e.fee.mgmt:null;
+function yieldText(e){if(!e.div||e.div.per_year===0)return"不配息";return isNum(e.div.yield)?f(e.div.yield)+"%":"—"}
+
+// ===== 讀資料：同時抓 GitHub 原始檔與網站上的檔案，取較新的那份 =====
+function dataUrls(){
+  const urls=["data/etf.json"];
+  const m=location.hostname.match(/^([^.]+)\.github\.io$/);
+  const repo=location.pathname.split("/").filter(Boolean)[0];
+  if(m&&repo)urls.unshift(`https://raw.githubusercontent.com/${m[1]}/${repo}/main/data/etf.json`);
+  return urls;
+}
+async function loadData(){
+  const res=await Promise.allSettled(dataUrls().map(u=>fetch(u,{cache:"no-cache"}).then(r=>{if(!r.ok)throw new Error(r.status);return r.json()})));
+  const ok=res.filter(r=>r.status==="fulfilled"&&r.value&&Array.isArray(r.value.etfs)).map(r=>r.value);
+  if(!ok.length)throw new Error("沒有可用的資料");
+  ok.sort((a,b)=>String(b.generated_at).localeCompare(String(a.generated_at)));
+  return ok[0];
+}
 
 // ===== 分頁 =====
 function showTab(t){
   document.querySelectorAll(".tab").forEach(el=>el.hidden=el.id!=="tab-"+t);
   document.querySelectorAll("nav.tabs button").forEach(b=>b.setAttribute("aria-selected",b.dataset.t===t));
   $("sub").textContent={list:"10 檔追蹤清單 · 點卡片看詳情",overlap:"哪幾檔其實長得一樣",pf:"你實際持有哪些股票"}[t];
-  store.set("tab",t); window.scrollTo(0,0);
+  store.set("tab",t);window.scrollTo(0,0);
 }
 document.querySelectorAll("nav.tabs button").forEach(b=>b.onclick=()=>showTab(b.dataset.t));
+
+// ===== 資料狀態 =====
+function renderStatus(){
+  const s=DATA.sources||{};
+  const failed=Object.values(s).filter(x=>!x.ok);
+  const ageH=(Date.now()-new Date(DATA.generated_at))/36e5;
+  let html=`行情 <b>${md(s.mis&&s.mis.as_of)}</b> 收盤 · 受益人數 <b>${md(s.tdcc&&s.tdcc.as_of)}</b>（集保每週）· 更新 <b>${fmtTime(DATA.generated_at)}</b>`;
+  if(failed.length)html+=`<div class="warnline"><b>⚠️ 部分來源這次沒抓到</b>：${failed.map(x=>`${esc(x.name)}（沿用 ${md(x.as_of)}）`).join("、")}</div>`;
+  if(ageH>72)html+=`<div class="warnline"><b>⚠️ 資料超過 3 天沒更新</b>，請到 GitHub Actions 查看排程是否停止。</div>`;
+  if(DATA.warnings&&DATA.warnings.length)html+=`<div class="warnline"><b>⚠️ 檢查提醒</b>：${DATA.warnings.map(esc).join("；")}</div>`;
+  $("status").innerHTML=html;
+  $("genAt").textContent="更新 "+fmtTime(DATA.generated_at);
+  $("sources").innerHTML=Object.values(s).map(x=>`<div>${esc(x.name)}</div><div class="num ${x.ok?"ok":"ng"}">${x.ok?"✓":"✗"} ${x.as_of?md(x.as_of):""}</div>`).join("");
+}
 
 // ===== 總覽 =====
 let filter="全部",sortBy=store.get("sort","aum");
 function stats(){
-  const tot=ETFS.reduce((a,e)=>a+e.aum,0);
-  const s=[...ETFS].sort((a,b)=>b.prem-a.prem);
-  const ppl=[...ETFS].sort((a,b)=>b.holders-a.holders)[0];
-  const y=[...ETFS].sort((a,b)=>b.yld-a.yld)[0];
-  $("stats").innerHTML=[
-    ["溢價最高",s[0].code,premHTML(s[0].prem),s[0].name],
-    ["折價最深",s.at(-1).code,premHTML(s.at(-1).prem),s.at(-1).name],
-    ["殖利率最高",y.code,f(y.yld,1)+"%",y.name],
-    ["受益人最多",ppl.code,ppl.holders+" 萬人",ppl.name],
-    ["清單總規模",f(tot,0)+" 億","",""]
-  ].map(([k,v,x,s])=>`<div class="stat"><div class="k">${k}</div><div class="v">${v}</div><div class="s">${x} ${s}</div></div>`).join("");
+  const L=ETFS.filter(e=>isNum(e.prem));
+  const s=[...L].sort((a,b)=>b.prem-a.prem);
+  const tot=ETFS.reduce((a,e)=>a+(e.aum||0),0);
+  const y=[...ETFS].filter(e=>yieldOf(e)!=null).sort((a,b)=>yieldOf(b)-yieldOf(a))[0];
+  const ppl=[...ETFS].filter(e=>isNum(e.holders)).sort((a,b)=>b.holders-a.holders)[0];
+  const cards=[];
+  if(s.length){const lo=s[s.length-1];cards.push(["溢價最高",s[0].code,premHTML(s[0].prem),s[0].name]);cards.push([lo.prem<0?"折價最深":"溢價最低",lo.code,premHTML(lo.prem),lo.name])}
+  if(y)cards.push(["殖利率最高",y.code,f(y.div.yield)+"%",y.name]);
+  if(ppl)cards.push(["受益人最多",ppl.code,f(holdersWan(ppl),1)+" 萬人",ppl.name]);
+  cards.push(["清單總規模",f(tot,0)+" 億","",""]);
+  $("stats").innerHTML=cards.map(([k,v,x,n])=>`<div class="stat"><div class="k">${k}</div><div class="v">${v}</div><div class="s">${x} ${esc(n)}</div></div>`).join("");
 }
 const TYPES=["全部","市值型","高股息","主動式","槓桿","債券"];
 $("chips").innerHTML=TYPES.map(t=>`<button class="chip" data-f="${t}" aria-pressed="${t===filter}">${t}</button>`).join("");
 $("chips").querySelectorAll(".chip").forEach(c=>c.onclick=()=>{filter=c.dataset.f;$("chips").querySelectorAll(".chip").forEach(x=>x.setAttribute("aria-pressed",x===c));renderList()});
 $("sort").value=sortBy;
 $("sort").onchange=e=>{sortBy=e.target.value;store.set("sort",sortBy);renderList()};
-const SORTS={aum:(a,b)=>b.aum-a.aum,premD:(a,b)=>b.prem-a.prem,premA:(a,b)=>a.prem-b.prem,yield:(a,b)=>b.yld-a.yld,holders:(a,b)=>b.holders-a.holders,fee:(a,b)=>a.fee-b.fee,vol:(a,b)=>b.vol-a.vol};
+const nz=(v,low)=>isNum(v)?v:(low?Infinity:-Infinity);
+const SORTS={
+  aum:(a,b)=>nz(b.aum)-nz(a.aum), premD:(a,b)=>nz(b.prem)-nz(a.prem), premA:(a,b)=>nz(a.prem,1)-nz(b.prem,1),
+  yield:(a,b)=>nz(yieldOf(b))-nz(yieldOf(a)), holders:(a,b)=>nz(b.holders)-nz(a.holders),
+  fee:(a,b)=>nz(feeOf(a),1)-nz(feeOf(b),1), vol:(a,b)=>nz(b.volume)-nz(a.volume)
+};
 function renderList(){
-  const list=ETFS.filter(e=>filter==="全部"||e.type===filter).sort(SORTS[sortBy]);
+  const list=ETFS.filter(e=>filter==="全部"||e.type===filter).sort(SORTS[sortBy]||SORTS.aum);
   $("count").textContent=`共 ${list.length} 檔`;
   $("list").innerHTML=list.map(e=>`
-    <button class="card" data-c="${e.code}">
-      <div style="min-width:0"><span class="code">${e.code}</span><span class="tag">${e.type}</span><div class="name">${e.name}</div></div>
-      <div><div class="px">${f(e.px)}</div><div style="text-align:right">${premHTML(e.prem)}</div></div>
+    <button class="card" data-c="${esc(e.code)}">
+      <div style="min-width:0"><span class="code">${esc(e.code)}</span><span class="tag">${esc(e.type)}</span><div class="name">${esc(e.name)}</div></div>
+      <div><div class="px">${f(e.price)}</div><div style="text-align:right">${premHTML(e.prem)}</div></div>
       <div class="meta">
         <span>規模 <b>${f(e.aum,0)}億</b></span>
-        <span>受益人 <b>${e.holders}萬</b></span>
-        <span>管理費 <b>${f(e.fee)}%</b></span>
-        <span>殖利率 <b>${e.yld?f(e.yld,1)+"%":"—"}</b></span>
+        <span>受益人 <b>${f(holdersWan(e),1)}萬</b></span>
+        <span>管理費 <b>${isNum(feeOf(e))?f(feeOf(e))+"%":"—"}</b></span>
+        <span>殖利率 <b>${yieldText(e)}</b></span>
       </div>
-    </button>`).join("");
+    </button>`).join("")||'<div class="empty">沒有符合的 ETF</div>';
   $("list").querySelectorAll(".card").forEach(c=>c.onclick=()=>openSheet(c.dataset.c));
 }
 
 // ===== 底部面板 =====
 let lastFocus=null;
 function openSheet(code){
-  const e=byCode[code]; lastFocus=document.activeElement;
-  const max=Math.max(...e.h.map(x=>Math.min(x[2],100)));
-  const top5=e.h.reduce((a,x)=>a+x[2],0);
-  const note=e.type==="債券"?"債券以面額計，不適用張數。":e.type==="槓桿"?"槓桿型主要持有期貨，總曝險約 200%。":`前五大合計 ${f(top5,1)}%`;
+  const e=byCode[code];if(!e)return;lastFocus=document.activeElement;
+  const h=HOLD[code]||[];
+  const max=Math.max(1,...h.map(x=>Math.min(x[1],100)));
+  const d=e.div||{},fee=e.fee||{};
+  const divRows=d.per_year===0?`<dt>收益分配</dt><dd>不配息</dd>`:`
+      <dt>配息頻率</dt><dd>${esc(d.freq||"—")}</dd>
+      <dt>近一年配息</dt><dd>${isNum(d.ttm)?f(d.ttm,3)+" 元":"—"}${isNum(d.count)?`（${d.count} 次${d.count<d.per_year?"，未滿一年":""}）`:""}</dd>
+      <dt>殖利率</dt><dd>${yieldText(e)}</dd>
+      <dt>最近除息</dt><dd>${d.last?`${ymd(d.last.date)}　${f(d.last.amount,3)} 元`:"—"}</dd>
+      <dt>下次除息</dt><dd>${d.next?`${ymd(d.next.date)}　${isNum(d.next.amount)?f(d.next.amount,3)+" 元":"金額待公告"}`:"尚未公告"}</dd>`;
   $("sheet").innerHTML=`
     <div class="grab"></div>
     <div class="sheet-head">
-      <div><span class="code num" style="color:var(--accent);font-weight:600">${e.code}</span><span class="tag">${e.type}</span>
-        <h2 id="sheetTitle">${e.name}</h2></div>
+      <div><span class="num" style="color:var(--accent);font-weight:600">${esc(e.code)}</span><span class="tag">${esc(e.type)}</span><span class="tag">${esc(e.market||"")}</span>
+        <h2 id="sheetTitle">${esc(e.name)}</h2></div>
       <button class="close" id="closeBtn" aria-label="關閉">✕</button>
     </div>
     <div class="kv">
-      <div><div class="k">市價</div><div class="v">${f(e.px)}</div></div>
-      <div><div class="k">預估淨值</div><div class="v">${f(e.nav)}</div></div>
+      <div><div class="k">市價</div><div class="v">${f(e.price)}</div></div>
+      <div><div class="k">預估淨值</div><div class="v">${fNav(e.nav)}</div></div>
       <div><div class="k">折溢價</div><div class="v">${premHTML(e.prem)}</div></div>
       <div><div class="k">資產規模</div><div class="v">${f(e.aum,0)}億</div></div>
-      <div><div class="k">受益人數</div><div class="v">${e.holders}萬</div></div>
-      <div><div class="k">日均量</div><div class="v">${f(e.vol,0)}張</div></div>
-      <div><div class="k">管理費</div><div class="v">${f(e.fee)}%</div></div>
-      <div><div class="k">總費用率</div><div class="v">${f(e.ter)}%</div></div>
-      <div><div class="k">殖利率</div><div class="v">${e.yld?f(e.yld,1)+"%":"—"}</div></div>
+      <div><div class="k">受益人數</div><div class="v">${f(holdersWan(e),1)}萬</div></div>
+      <div><div class="k">成交量</div><div class="v">${f(e.volume,0)}張</div></div>
+      <div><div class="k">經理費</div><div class="v">${isNum(fee.mgmt)?f(fee.mgmt,3)+"%":"—"}</div></div>
+      <div><div class="k">經理＋保管</div><div class="v">${isNum(fee.total)?f(fee.total,3)+"%":"—"}</div></div>
+      <div><div class="k">殖利率</div><div class="v">${yieldText(e)}</div></div>
     </div>
+    <section><b>配息</b><dl class="rows">${divRows}</dl></section>
     <section>
-      <div class="bar-row"><b>前五大成份股</b><span class="sub">${e.div}</span></div>
-      <div class="hold">${e.h.map(([n,q,w])=>`
-        <div>${n}<small>${q==null?"面額計":f(q/1000,0)+" 張"}</small></div>
+      <b>費率</b>
+      <p class="sub" style="margin:0">${esc(fee.note||"")}${fee.tiered?"。上方費率依目前規模分段加權。":""}</p>
+      <p class="sub" style="margin:0">手動查核 ${ymd(fee.checked)}${fee.source?` · <a href="${esc(fee.source)}" target="_blank" rel="noopener">來源</a>`:""}</p>
+    </section>
+    <section>
+      <div class="bar-row"><b>前五大成份股<span class="badge">示意資料</span></b></div>
+      <div class="hold">${h.map(([n,w])=>`
+        <div>${esc(n)}</div>
         <div class="barw"><i style="width:${Math.min(w,100)/max*100}%"></i></div>
         <div class="r">${f(w,1)}%</div>`).join("")}
       </div>
-      <p class="hint" style="margin:0">${note}</p>
+      <p class="hint" style="margin:0">成份股權重尚未接上投信每日清單，僅供版面參考。</p>
+    </section>
+    <section>
+      <b>資料日期</b>
+      <dl class="rows">
+        <dt>市價／淨值</dt><dd>${ymd(e.quote_date)} ${esc(e.quote_time||"")}</dd>
+        <dt>已發行單位</dt><dd>${isNum(e.units)?f(e.units/1e8,2)+" 億單位":"—"}${isNum(e.units_chg)&&e.units_chg!==0?`（${e.units_chg>0?"+":""}${f(e.units_chg/1e3,0)} 張）`:""}</dd>
+        <dt>受益人數</dt><dd>${ymd(e.holders_date)}</dd>
+        <dt>成交量</dt><dd>${ymd(e.volume_date)}</dd>
+      </dl>
     </section>`;
   $("sheet").setAttribute("aria-labelledby","sheetTitle");
-  $("scrim").hidden=false; $("sheet").hidden=false; $("sheet").scrollTop=0;
+  $("scrim").hidden=false;$("sheet").hidden=false;$("sheet").scrollTop=0;
   document.body.style.overflow="hidden";
-  $("closeBtn").onclick=closeSheet; $("closeBtn").focus();
+  $("closeBtn").onclick=closeSheet;$("closeBtn").focus();
 }
 function closeSheet(){$("scrim").hidden=true;$("sheet").hidden=true;document.body.style.overflow="";lastFocus&&lastFocus.focus()}
 $("scrim").onclick=closeSheet;
 document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("sheet").hidden)closeSheet()});
-// 下滑關閉
 let y0=null;
 $("sheet").addEventListener("touchstart",e=>{y0=$("sheet").scrollTop<=0?e.touches[0].clientY:null},{passive:true});
 $("sheet").addEventListener("touchend",e=>{if(y0!=null&&e.changedTouches[0].clientY-y0>80)closeSheet();y0=null},{passive:true});
 
-// ===== 成份股重疊 =====
+// ===== 成份股重疊（示意）=====
 const STOCK_ETFS=["0050","006208","009816","0052","00981A","0056","00878","00919"];
 function overlap(a,b){
-  const wb=Object.fromEntries(byCode[b].h.map(x=>[x[0],x[2]]));
-  return byCode[a].h.reduce((s,[n,,w])=>s+(wb[n]?Math.min(w,wb[n]):0),0);
+  const wb=Object.fromEntries((HOLD[b]||[]).map(x=>[x[0],x[1]]));
+  return (HOLD[a]||[]).reduce((s,[n,w])=>s+(wb[n]?Math.min(w,wb[n]):0),0);
 }
 function renderOverlap(){
   const cell=v=>{const a=Math.min(v/80,1);return `background:color-mix(in srgb,var(--accent) ${Math.round(a*85)}%,var(--bg));color:${a>.55?"var(--on-accent)":"var(--fg)"}`};
@@ -319,26 +387,27 @@ function renderOverlap(){
   pairs.sort((x,y)=>y[2]-x[2]);
   $("overlapNote").innerHTML=`<b>重疊最高的組合</b><div class="hold" style="margin-top:10px;grid-template-columns:auto 1fr auto">${pairs.slice(0,4).map(([a,b,v])=>`
     <div class="num">${a} × ${b}</div><div class="barw"><i style="width:${v}%"></i></div><div class="r">${f(v,1)}%</div>`).join("")}</div>
-    <p class="hint">以前五大持股計算（示意）。正式版會用完整成份股清單。</p>`;
+    <p class="hint">以前五大持股的示意權重計算。正式版會用投信每日公布的完整成份股。</p>`;
 }
 
 // ===== 我的組合 =====
 let pf=store.get("pf",{"0050":2,"006208":3,"0056":5,"00878":5});
 function renderPfInputs(){
   $("pfInputs").innerHTML=ETFS.map(e=>`
-    <div class="pf-row"><label for="pf-${e.code}"><span class="num" style="color:var(--accent);font-weight:600">${e.code}</span> ${e.name}<small>市價 ${f(e.px)}</small></label>
+    <div class="pf-row"><label for="pf-${e.code}"><span class="num" style="color:var(--accent);font-weight:600">${e.code}</span> ${esc(e.name)}<small>市價 ${f(e.price)}</small></label>
     <input id="pf-${e.code}" type="number" inputmode="decimal" min="0" step="1" placeholder="0 張" value="${pf[e.code]||""}"></div>`).join("");
   $("pfInputs").querySelectorAll("input").forEach(i=>i.oninput=()=>{
     const c=i.id.slice(3),v=parseFloat(i.value);
     if(v>0)pf[c]=v;else delete pf[c];
-    store.set("pf",pf); renderPf();
+    store.set("pf",pf);renderPf();
   });
 }
 function renderPf(){
   let total=0;const expo={};
   Object.entries(pf).forEach(([c,lots])=>{
-    const e=byCode[c];const val=lots*1000*e.px;total+=val;let used=0;
-    e.h.forEach(([n,,w])=>{expo[n]=(expo[n]||0)+val*w/100;used+=w});
+    const e=byCode[c];if(!e||!isNum(e.price))return;
+    const val=lots*1000*e.price;total+=val;let used=0;
+    (HOLD[c]||[]).forEach(([n,w])=>{expo[n]=(expo[n]||0)+val*w/100;used+=w});
     if(used<100)expo["其他"]=(expo["其他"]||0)+val*(100-used)/100;
   });
   $("pfTotal").textContent=total?"NT$ "+f(total,0):"尚未輸入持股";
@@ -346,17 +415,23 @@ function renderPf(){
   if(expo["其他"])rows.push(["其他",expo["其他"]]);
   const max=Math.max(...rows.map(r=>r[1]),1);
   $("pfExpo").innerHTML=total?rows.map(([n,v])=>`
-    <div>${n}<small>NT$ ${f(v/10000,0)} 萬</small></div>
+    <div>${esc(n)}<small>NT$ ${f(v/1e4,0)} 萬</small></div>
     <div class="barw"><i style="width:${v/max*100}%"></i></div>
     <div class="r">${f(v/total*100,1)}%</div>`).join(""):`<div class="sub" style="grid-column:1/-1">在上方輸入任一檔的張數就會開始計算。</div>`;
   const tsmc=total?(expo["台積電"]||0)/total*100:0;
-  $("pfWarn").innerHTML=tsmc>=30?`<span class="warn">⚠️ 台積電實際佔 ${f(tsmc,1)}%</span>，單一個股集中度偏高。`:total?`最大單一個股佔 ${f(rows[0][1]/total*100,1)}%。`:"";
+  $("pfWarn").innerHTML=tsmc>=30?`<span class="warn">⚠️ 台積電約佔 ${f(tsmc,1)}%</span>（依示意權重），單一個股集中度偏高。`:total?`最大單一個股約佔 ${f(rows[0][1]/total*100,1)}%（依示意權重）。`:"";
 }
 
-stats();renderList();renderOverlap();renderPfInputs();renderPf();
+// ===== 啟動 =====
 showTab(store.get("tab","list"));
-</script>
-<script>
+renderOverlap();
+loadData().then(d=>{
+  DATA=d;ETFS=d.etfs;byCode=Object.fromEntries(ETFS.map(e=>[e.code,e]));
+  renderStatus();stats();renderList();renderPfInputs();renderPf();
+}).catch(err=>{
+  $("status").innerHTML=`<div class="warnline"><b>⚠️ 無法載入資料</b>：${esc(err.message)}。請確認網路連線後重新整理。</div>`;
+  $("list").innerHTML='<div class="empty">目前沒有資料可以顯示</div>';
+});
 if("serviceWorker" in navigator){addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}))}
 </script>
 </body>
