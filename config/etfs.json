@@ -1,104 +1,361 @@
 {
-  "_說明": "手動維護的欄位。費率為年費率（%），級距為「規模上限（億元）, 費率」，最後一級上限填 null；級距採超額分段計算。費率變動時請更新 checked 日期與 source。",
+  "_說明": "手動維護的欄位。費率為年費率（%），級距為「規模上限（億元）, 費率」，最後一級上限填 null；級距採超額分段計算。費率變動時請更新 checked 日期與 source。pcf 為成份股來源：issuer 投信代號，id 為該投信網站的基金代碼。",
   "etfs": [
     {
-      "code": "0050", "name": "元大台灣50", "type": "市值型", "market": "TWSE",
-      "div_per_year": 2, "div_note": "半年配",
+      "code": "0050",
+      "name": "元大台灣50",
+      "type": "市值型",
+      "market": "TWSE",
+      "div_per_year": 2,
+      "div_note": "半年配",
       "fee": {
-        "mgmt": [[1000, 0.15], [5000, 0.10], [10000, 0.08], [null, 0.05]],
-        "custody": [[10000, 0.03], [null, 0.025]],
+        "mgmt": [
+          [
+            1000,
+            0.15
+          ],
+          [
+            5000,
+            0.1
+          ],
+          [
+            10000,
+            0.08
+          ],
+          [
+            null,
+            0.05
+          ]
+        ],
+        "custody": [
+          [
+            10000,
+            0.03
+          ],
+          [
+            null,
+            0.025
+          ]
+        ],
         "note": "經理費：1,000億以下 0.15%、1,000–5,000億 0.10%、5,000億–1兆 0.08%、1兆以上 0.05%；保管費 1兆以下 0.03%、以上 0.025%",
-        "source": "https://technews.tw/?p=1336386", "checked": "2026-10-13"
+        "source": "https://technews.tw/?p=1336386",
+        "checked": "2026-10-13"
+      },
+      "pcf": {
+        "issuer": "yuanta"
       }
     },
     {
-      "code": "0056", "name": "元大高股息", "type": "高股息", "market": "TWSE",
-      "div_per_year": 4, "div_note": "季配",
+      "code": "0056",
+      "name": "元大高股息",
+      "type": "高股息",
+      "market": "TWSE",
+      "div_per_year": 4,
+      "div_note": "季配",
       "fee": {
-        "mgmt": [[100, 0.40], [300, 0.34], [null, 0.30]],
-        "custody": [[null, 0.035]],
+        "mgmt": [
+          [
+            100,
+            0.4
+          ],
+          [
+            300,
+            0.34
+          ],
+          [
+            null,
+            0.3
+          ]
+        ],
+        "custody": [
+          [
+            null,
+            0.035
+          ]
+        ],
         "note": "經理費：100億以下 0.40%、100–300億 0.34%、300億以上 0.30%；保管費 0.035%",
-        "source": "https://www.yuantaetfs.com/product/detail/0056/", "checked": "2026-10-13"
+        "source": "https://www.yuantaetfs.com/product/detail/0056/",
+        "checked": "2026-10-13"
+      },
+      "pcf": {
+        "issuer": "yuanta"
       }
     },
     {
-      "code": "00878", "name": "國泰永續高股息", "type": "高股息", "market": "TWSE",
-      "div_per_year": 4, "div_note": "季配",
+      "code": "00878",
+      "name": "國泰永續高股息",
+      "type": "高股息",
+      "market": "TWSE",
+      "div_per_year": 4,
+      "div_note": "季配",
       "fee": {
-        "mgmt": [[null, 0.25]],
-        "custody": [[null, 0.03]],
+        "mgmt": [
+          [
+            null,
+            0.25
+          ]
+        ],
+        "custody": [
+          [
+            null,
+            0.03
+          ]
+        ],
         "note": "經理費 0.25%、保管費 0.03%（來源未列級距）",
-        "source": "https://newtalk.tw/news/view/2025-02-06/955657", "checked": "2026-10-13"
+        "source": "https://newtalk.tw/news/view/2025-02-06/955657",
+        "checked": "2026-10-13"
+      },
+      "pcf": {
+        "issuer": "cathay",
+        "id": "CN"
       }
     },
     {
-      "code": "00919", "name": "群益台灣精選高息", "type": "高股息", "market": "TWSE",
-      "div_per_year": 4, "div_note": "季配",
+      "code": "00919",
+      "name": "群益台灣精選高息",
+      "type": "高股息",
+      "market": "TWSE",
+      "div_per_year": 4,
+      "div_note": "季配",
       "fee": {
-        "mgmt": [[null, 0.30]],
-        "custody": [[null, 0.035]],
+        "mgmt": [
+          [
+            null,
+            0.3
+          ]
+        ],
+        "custody": [
+          [
+            null,
+            0.035
+          ]
+        ],
         "note": "經理費 0.30%、保管費 0.035%（來源未列級距）",
-        "source": "https://www.businessweekly.com.tw/business/blog/3014982", "checked": "2026-10-13"
+        "source": "https://www.businessweekly.com.tw/business/blog/3014982",
+        "checked": "2026-10-13"
+      },
+      "pcf": {
+        "issuer": "capital",
+        "id": "195"
       }
     },
     {
-      "code": "006208", "name": "富邦台50", "type": "市值型", "market": "TWSE",
-      "div_per_year": 2, "div_note": "半年配",
+      "code": "006208",
+      "name": "富邦台50",
+      "type": "市值型",
+      "market": "TWSE",
+      "div_per_year": 2,
+      "div_note": "半年配",
       "fee": {
-        "mgmt": [[1000, 0.15], [5000, 0.10], [10000, 0.08], [null, 0.05]],
-        "custody": [[10000, 0.03], [null, 0.025]],
+        "mgmt": [
+          [
+            1000,
+            0.15
+          ],
+          [
+            5000,
+            0.1
+          ],
+          [
+            10000,
+            0.08
+          ],
+          [
+            null,
+            0.05
+          ]
+        ],
+        "custody": [
+          [
+            10000,
+            0.03
+          ],
+          [
+            null,
+            0.025
+          ]
+        ],
         "note": "經理費：1,000億以下 0.15%、1,000–5,000億 0.10%、5,000億–1兆 0.08%、1兆以上 0.05%；保管費 1兆以下 0.03%、以上 0.025%",
-        "source": "https://technews.tw/?p=1403153", "checked": "2026-10-13"
+        "source": "https://technews.tw/?p=1403153",
+        "checked": "2026-10-13"
+      },
+      "pcf": {
+        "issuer": "fubon"
       }
     },
     {
-      "code": "00981A", "name": "主動統一台股增長", "type": "主動式", "market": "TWSE",
-      "div_per_year": 4, "div_note": "季配",
+      "code": "00981A",
+      "name": "主動統一台股增長",
+      "type": "主動式",
+      "market": "TWSE",
+      "div_per_year": 4,
+      "div_note": "季配",
       "fee": {
-        "mgmt": [[200, 1.20], [null, 1.00]],
-        "custody": [[200, 0.12], [null, 0.10]],
+        "mgmt": [
+          [
+            200,
+            1.2
+          ],
+          [
+            null,
+            1.0
+          ]
+        ],
+        "custody": [
+          [
+            200,
+            0.12
+          ],
+          [
+            null,
+            0.1
+          ]
+        ],
         "note": "經理費：200億以下 1.2%、超過部分 1.0%；保管費：200億以下 0.12%、超過部分 0.10%",
-        "source": "https://school.gugu.fund/blog/ETF/6020135449", "checked": "2026-10-13"
+        "source": "https://school.gugu.fund/blog/ETF/6020135449",
+        "checked": "2026-10-13"
+      },
+      "pcf": {
+        "issuer": "uni",
+        "id": "49YTW"
       }
     },
     {
-      "code": "00631L", "name": "元大台灣50正2", "type": "槓桿", "market": "TWSE",
-      "div_per_year": 0, "div_note": "不配息",
+      "code": "00631L",
+      "name": "元大台灣50正2",
+      "type": "槓桿",
+      "market": "TWSE",
+      "div_per_year": 0,
+      "div_note": "不配息",
       "fee": {
-        "mgmt": [[null, 1.00]],
-        "custody": [[null, 0.04]],
+        "mgmt": [
+          [
+            null,
+            1.0
+          ]
+        ],
+        "custody": [
+          [
+            null,
+            0.04
+          ]
+        ],
         "note": "經理費 1.00%、保管費 0.04%",
-        "source": "https://www.yuantaetfs.com/product/detail/00631L/", "checked": "2026-10-13"
+        "source": "https://www.yuantaetfs.com/product/detail/00631L/",
+        "checked": "2026-10-13"
+      },
+      "pcf": {
+        "issuer": "yuanta"
       }
     },
     {
-      "code": "00937B", "name": "群益ESG投等債20+", "type": "債券", "market": "TPEX",
-      "div_per_year": 12, "div_note": "月配",
+      "code": "00937B",
+      "name": "群益ESG投等債20+",
+      "type": "債券",
+      "market": "TPEX",
+      "div_per_year": 12,
+      "div_note": "月配",
       "fee": {
-        "mgmt": [[100, 0.30], [200, 0.28], [300, 0.25], [null, 0.20]],
-        "custody": [[30, 0.10], [200, 0.08], [300, 0.06], [null, 0.05]],
+        "mgmt": [
+          [
+            100,
+            0.3
+          ],
+          [
+            200,
+            0.28
+          ],
+          [
+            300,
+            0.25
+          ],
+          [
+            null,
+            0.2
+          ]
+        ],
+        "custody": [
+          [
+            30,
+            0.1
+          ],
+          [
+            200,
+            0.08
+          ],
+          [
+            300,
+            0.06
+          ],
+          [
+            null,
+            0.05
+          ]
+        ],
         "note": "經理費：100億以下 0.30%、100–200億 0.28%、200–300億 0.25%、300億以上 0.20%；保管費：30億以下 0.10%、30–200億 0.08%、200–300億 0.06%、300億以上 0.05%",
-        "source": "https://www.wantgoo.com/stock/etf/00937b/profile", "checked": "2026-10-13"
+        "source": "https://www.wantgoo.com/stock/etf/00937b/profile",
+        "checked": "2026-10-13"
+      },
+      "pcf": {
+        "issuer": "capital",
+        "id": "378"
       }
     },
     {
-      "code": "009816", "name": "凱基台灣TOP50", "type": "市值型", "market": "TWSE",
-      "div_per_year": 0, "div_note": "不配息",
+      "code": "009816",
+      "name": "凱基台灣TOP50",
+      "type": "市值型",
+      "market": "TWSE",
+      "div_per_year": 0,
+      "div_note": "不配息",
       "fee": {
-        "mgmt": [[null, 0.07]],
-        "custody": [[null, 0.027]],
+        "mgmt": [
+          [
+            null,
+            0.07
+          ]
+        ],
+        "custody": [
+          [
+            null,
+            0.027
+          ]
+        ],
         "note": "經理費 0.07%、保管費 0.027%（來源未列級距）",
-        "source": "https://www.businessweekly.com.tw/business/blog/3020446", "checked": "2026-10-13"
+        "source": "https://www.businessweekly.com.tw/business/blog/3020446",
+        "checked": "2026-10-13"
+      },
+      "pcf": {
+        "issuer": "kgi",
+        "id": "J023"
       }
     },
     {
-      "code": "0052", "name": "富邦科技", "type": "市值型", "market": "TWSE",
-      "div_per_year": 1, "div_note": "年配",
+      "code": "0052",
+      "name": "富邦科技",
+      "type": "市值型",
+      "market": "TWSE",
+      "div_per_year": 1,
+      "div_note": "年配",
       "fee": {
-        "mgmt": [[null, 0.15]],
-        "custody": [[null, 0.035]],
+        "mgmt": [
+          [
+            null,
+            0.15
+          ]
+        ],
+        "custody": [
+          [
+            null,
+            0.035
+          ]
+        ],
         "note": "經理費 0.15%、保管費 0.035%",
-        "source": "https://www.fubon.com/asset-management/ph/0052/index.html", "checked": "2026-10-13"
+        "source": "https://www.fubon.com/asset-management/ph/0052/index.html",
+        "checked": "2026-10-13"
+      },
+      "pcf": {
+        "issuer": "fubon"
       }
     }
   ]
