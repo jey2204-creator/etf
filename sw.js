@@ -1,6 +1,6 @@
 // 版本號：每次更新網頁就改這裡，iPhone 才會換成新版
-const CACHE="etf-v15";
-const SHELL=["./","./index.html","./manifest.webmanifest","./icons/apple-touch-icon.png","./icons/icon-192.png"];
+const CACHE="etf-v16";
+const SHELL=["./","./index.html","./manifest.webmanifest","./icons/apple-touch-icon.png?v=2","./icons/icon-192.png?v=2"];
 // 可離線沿用的外部資料：GitHub 原始檔、國泰申購買回清單（網頁端直接讀取）
 const DATA_HOSTS=["raw.githubusercontent.com","cwapi.cathaysite.com.tw","www.ctbcinvestments.com.tw"];
 self.addEventListener("install",e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(SHELL)));self.skipWaiting()});
