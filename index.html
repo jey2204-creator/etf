@@ -63,6 +63,13 @@ select{font:inherit;font-size:.85rem;padding:6px 10px;border-radius:8px;border:1
 .card .px{font-family:var(--mono);font-size:1.15rem;font-weight:600;text-align:right}
 .card .meta{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:4px 14px;font-size:.78rem;color:var(--muted);margin-top:6px}
 .card .meta b{color:var(--fg);font-family:var(--mono);font-weight:500}
+.card .aum{font-size:.74rem;color:var(--muted);font-family:var(--mono);margin-top:2px}
+.card .q4{grid-column:1/-1;display:grid;grid-template-columns:repeat(4,1fr);margin-top:10px;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.card .q4>div{padding:6px 4px;text-align:center;border-left:1px solid var(--line);min-width:0}
+.card .q4>div:first-child{border-left:0}
+.card .q4 span{display:block;font-size:.68rem;color:var(--muted);white-space:nowrap}
+.card .q4 b{display:block;font-family:var(--mono);font-weight:600;font-size:.86rem;color:var(--fg);margin-top:1px}
+.card .q4 .prem{margin-top:1px;padding:0 6px;font-size:.84rem;font-weight:600}
 .tag{font-size:.68rem;border:1px solid var(--line);border-radius:4px;padding:0 5px;color:var(--muted);margin-left:6px;vertical-align:2px;font-weight:400}
 .prem{display:inline-block;padding:1px 8px;border-radius:999px;font-family:var(--mono);font-size:.82rem;text-align:right}
 .prem.hi{background:var(--up-bg);color:var(--up);font-weight:600}
@@ -183,7 +190,7 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
           <option value="premA">折價 深→淺</option>
           <option value="yield">殖利率 高→低</option>
           <option value="holders">受益人 多→少</option>
-          <option value="fee">管理費 低→高</option>
+          <option value="fee">經理+保管 低→高</option>
           <option value="vol">成交量 大→小</option>
           <option value="flow4">近4週淨申購 多→少</option>
         </select>
@@ -300,6 +307,8 @@ const fNav=n=>{if(!isNum(n))return"—";const dec=(String(n).split(".")[1]||"").
 const holdersWan=e=>isNum(e.holders)?e.holders/1e4:null;
 const yieldOf=e=>e.div&&isNum(e.div.yield)?e.div.yield:null;
 const feeOf=e=>e.fee&&isNum(e.fee.mgmt)?e.fee.mgmt:null;
+const feeTot=e=>e.fee&&isNum(e.fee.total)?e.fee.total:null;
+const pct2=v=>isNum(v)?f(v)+"%":"—";
 function yieldText(e){if(!e.div||e.div.per_year===0)return"不配息";return isNum(e.div.yield)?f(e.div.yield)+"%":"—"}
 
 // ===== 讀資料：同時抓 GitHub 原始檔與網站上的檔案，取較新的那份 =====
@@ -453,7 +462,7 @@ const nz=(v,low)=>isNum(v)?v:(low?Infinity:-Infinity);
 const SORTS={
   aum:(a,b)=>nz(b.aum)-nz(a.aum), premD:(a,b)=>nz(b.prem)-nz(a.prem), premA:(a,b)=>nz(a.prem,1)-nz(b.prem,1),
   yield:(a,b)=>nz(yieldOf(b))-nz(yieldOf(a)), holders:(a,b)=>nz(b.holders)-nz(a.holders),
-  fee:(a,b)=>nz(feeOf(a),1)-nz(feeOf(b),1), vol:(a,b)=>nz(b.volume)-nz(a.volume),
+  fee:(a,b)=>nz(feeTot(a),1)-nz(feeTot(b),1), vol:(a,b)=>nz(b.volume)-nz(a.volume),
   flow4:(a,b)=>nz(b.flow&&b.flow.flow_w4)-nz(a.flow&&a.flow.flow_w4)
 };
 function renderList(){
@@ -462,12 +471,12 @@ function renderList(){
   $("list").innerHTML=list.map(e=>`
     <button class="card" data-c="${esc(e.code)}">
       <div style="min-width:0"><span class="code">${esc(e.code)}</span><span class="tag">${esc(e.type)}</span><div class="name">${esc(e.name)}</div></div>
-      <div><div class="px">${f(e.price)}</div><div style="text-align:right">${premHTML(e.prem)}</div></div>
-      <div class="meta">
-        <span>規模 <b>${f(e.aum,0)}億</b></span>
-        <span>受益人 <b>${f(holdersWan(e),1)}萬</b></span>
-        <span>管理費 <b>${isNum(feeOf(e))?f(feeOf(e))+"%":"—"}</b></span>
-        <span>殖利率 <b>${yieldText(e)}</b></span>
+      <div style="text-align:right"><div class="px">${f(e.price)}</div><div class="aum">規模 ${f(e.aum,0)}億</div></div>
+      <div class="q4">
+        <div><span>經理費</span><b>${pct2(feeOf(e))}</b></div>
+        <div><span>經理+保管</span><b>${pct2(feeTot(e))}</b></div>
+        <div><span>殖利率</span><b>${yieldText(e)}</b></div>
+        <div><span>折溢價</span>${premHTML(e.prem)}</div>
       </div>
     </button>`).join("")||'<div class="empty">沒有符合的 ETF</div>';
   $("list").querySelectorAll(".card").forEach(c=>c.onclick=()=>openSheet(c.dataset.c));
