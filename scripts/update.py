@@ -577,6 +577,41 @@ def pcf_fhtrust(code, fund):
     raise ValueError("復華最近 8 天都沒有資產明細")
 
 
+INDUSTRY = {"01": "水泥", "02": "食品", "03": "塑膠", "04": "紡織", "05": "電機機械", "06": "電器電纜",
+            "08": "玻璃陶瓷", "09": "造紙", "10": "鋼鐵", "11": "橡膠", "12": "汽車", "14": "建材營造",
+            "15": "航運", "16": "觀光餐旅", "17": "金融保險", "18": "貿易百貨", "20": "其他", "21": "化學",
+            "22": "生技醫療", "23": "油電燃氣", "24": "半導體", "25": "電腦週邊", "26": "光電", "27": "通信網路",
+            "28": "電子零組件", "29": "電子通路", "30": "資訊服務", "31": "其他電子", "32": "文化創意",
+            "33": "農業科技", "34": "電子商務", "35": "綠能環保", "36": "數位雲端", "37": "運動休閒", "38": "居家生活"}
+
+
+def src_caps():
+    """上市櫃普通股市值（億元）與產業：收盤價 × 已發行股數。回傳 {代號: [市值億, 產業]}。"""
+    out = {}
+    co = {str(r.get("公司代號", "")).strip(): r for r in
+          fetch_json("twse_co", "https://openapi.twse.com.tw/v1/opendata/t187ap03_L")}
+    for r in fetch_json("twse_all", "https://openapi.twse.com.tw/v1/exchangeReport/STOCK_DAY_ALL"):
+        c = str(r.get("Code", "")).strip()
+        px, info = num(r.get("ClosingPrice")), co.get(c)
+        sh = num(info.get("已發行普通股數或TDR原股發行股數")) if info else None
+        if re.fullmatch(r"\d{4}", c) and px and sh:
+            out[c] = [round(px * sh / 1e8), INDUSTRY.get(str(info.get("產業別", "")).strip(), "")]
+    ind = {}
+    try:
+        ind = {str(r.get("SecuritiesCompanyCode", "")).strip(): str(r.get("SecuritiesIndustryCode", "")).strip()
+               for r in fetch_json("tpex_co", "https://www.tpex.org.tw/openapi/v1/mopsfin_t187ap03_O")}
+    except Exception:  # noqa: BLE001
+        pass
+    for r in fetch_json("tpex_quotes", URLS["tpex_quotes"]):
+        c = str(r.get("SecuritiesCompanyCode", "")).strip()
+        px, sh = num(r.get("Close")), num(r.get("Capitals"))
+        if re.fullmatch(r"\d{4}", c) and px and sh:
+            out[c] = [round(px * sh / 1e8), INDUSTRY.get(ind.get(c, ""), "")]
+    if len(out) < 500:
+        raise ValueError(f"市值資料只有 {len(out)} 檔，不合理")
+    return out
+
+
 PCF_FETCHERS = {"yuanta": pcf_yuanta, "cathay": pcf_cathay, "capital": pcf_capital,
                 "fubon": pcf_fubon, "uni": pcf_uni, "kgi": pcf_kgi, "fhtrust": pcf_fhtrust}
 
@@ -628,9 +663,19 @@ def update_holdings(etf_cfg, now) -> tuple[dict, list[str]]:
                 print(f"[FAIL] 成份股 {code}: {e}", file=sys.stderr)
         if client:
             etfs[code]["client"] = client
+    caps = prev.get("stocks") or {}
+    try:
+        caps = src_caps()
+        sources["caps"] = {"name": "證交所／櫃買 股價與股本（市值排行）", "ok": True,
+                           "as_of": now.date().isoformat(), "fetched_at": now.isoformat(timespec="seconds")}
+    except Exception as e:  # noqa: BLE001
+        sources["caps"] = {"name": "證交所／櫃買 股價與股本（市值排行）", "ok": False, "client": False,
+                           "as_of": prev.get("sources", {}).get("caps", {}).get("as_of"), "error": str(e)[:200],
+                           "fetched_at": now.isoformat(timespec="seconds")}
+        print(f"[FAIL] 市值：{e}", file=sys.stderr)
     out = {"schema": 1, "generated_at": now.isoformat(timespec="seconds"),
            "fields": ["種類", "代號", "名稱", "數量", "權重%"], "sources": sources,
-           "warnings": warnings, "etfs": etfs}
+           "warnings": warnings, "etfs": etfs, "stocks": caps}
     HOLDINGS.parent.mkdir(parents=True, exist_ok=True)
     HOLDINGS.write_text(json.dumps(out, ensure_ascii=False, separators=(",", ":")) + "\n", encoding="utf-8")
     return out, sorted(hard_fail)
