@@ -1,55 +1,54 @@
 {
  "schema": 1,
- "generated_at": "2026-10-13T20:24:09+08:00",
+ "generated_at": "2026-10-13T20:32:30+08:00",
  "sources": {
   "mis": {
    "name": "證交所 MIS（市價、淨值、單位數）",
    "ok": true,
    "as_of": "2026-10-13",
-   "fetched_at": "2026-10-13T20:24:09+08:00"
+   "fetched_at": "2026-10-13T20:32:30+08:00"
   },
   "twse_quotes": {
    "name": "證交所 每日收盤行情（上市成交量）",
    "ok": true,
    "as_of": "2026-10-13",
-   "fetched_at": "2026-10-13T20:24:09+08:00"
+   "fetched_at": "2026-10-13T20:32:30+08:00"
   },
   "tpex_quotes": {
    "name": "櫃買中心 上櫃行情（上櫃成交量）",
-   "ok": false,
+   "ok": true,
    "as_of": "2026-10-13",
-   "fetched_at": "2026-10-13T19:58:08+08:00",
-   "error": "IncompleteRead: IncompleteRead(720489 bytes read, 4142208 more expected)"
+   "fetched_at": "2026-10-13T20:32:30+08:00"
   },
   "tdcc": {
    "name": "集保 股權分散表（受益人數）",
    "ok": true,
    "as_of": "2026-10-08",
-   "fetched_at": "2026-10-13T20:24:09+08:00"
+   "fetched_at": "2026-10-13T20:32:30+08:00"
   },
   "twse_div": {
    "name": "證交所 除權息結果（配息）",
    "ok": true,
    "as_of": "2026-10-13",
-   "fetched_at": "2026-10-13T20:24:09+08:00"
+   "fetched_at": "2026-10-13T20:32:30+08:00"
   },
   "tpex_div": {
    "name": "櫃買 除權息結果（配息）",
    "ok": true,
    "as_of": "2026-10-13",
-   "fetched_at": "2026-10-13T20:24:09+08:00"
+   "fetched_at": "2026-10-13T20:32:30+08:00"
   },
   "twse_pre": {
    "name": "證交所 除權息預告",
    "ok": true,
    "as_of": null,
-   "fetched_at": "2026-10-13T20:24:09+08:00"
+   "fetched_at": "2026-10-13T20:32:30+08:00"
   },
   "tpex_pre": {
    "name": "櫃買 除權息預告",
    "ok": true,
    "as_of": null,
-   "fetched_at": "2026-10-13T20:24:09+08:00"
+   "fetched_at": "2026-10-13T20:32:30+08:00"
   }
  },
  "warnings": [],
