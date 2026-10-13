@@ -20,8 +20,9 @@ TYPES = ["市值型", "高股息", "主動式", "海外", "槓桿", "債券"]
 OVERSEAS = re.compile(r"美國|美股|全球|世界|越南|韓國|KOSPI|日本|日韓|印度|中國|陸股|歐洲|標普|S&P|NASDAQ|那斯達克|費城|電動車", re.I)
 ISSUERS = [("主動統一", "uni"), ("統一", "uni"), ("元大", "yuanta"), ("國泰", "cathay"),
            ("群益", "capital"), ("富邦", "fubon"), ("凱基", "kgi"),
-           ("主動復華", "fhtrust"), ("復華", "fhtrust")]
-NO_ID_NEEDED = {"yuanta", "fubon", "fhtrust", "capital"}  # 只要 ETF 代號就查得到成份股（復華、群益會自動查基金代碼）
+           ("主動復華", "fhtrust"), ("復華", "fhtrust"), ("主動中信", "ctbc"), ("中信", "ctbc"),
+           ("台新", "tsit"), ("新光", "tsit"), ("貝萊德", "blackrock"), ("大華", "uobam")]
+NO_ID_NEEDED = {"yuanta", "fubon", "fhtrust", "capital", "ctbc", "tsit"}  # 只要 ETF 代號就查得到成份股（復華、群益、中信會自動查基金代碼）
 
 
 def guess_type(code: str, name: str) -> str:

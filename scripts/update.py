@@ -31,6 +31,7 @@ import ssl
 import sys
 import time
 import urllib.error
+import urllib.parse
 import urllib.request
 from datetime import date, datetime, timedelta, timezone
 from html.parser import HTMLParser
@@ -363,7 +364,8 @@ def src_tpex_pre(codes):
 
 ISSUER_NAMES = {"yuanta": "元大投信", "cathay": "國泰投信", "capital": "群益投信",
                 "fubon": "富邦投信", "uni": "統一投信", "kgi": "凱基投信",
-                "fhtrust": "復華投信"}
+                "fhtrust": "復華投信", "ctbc": "中國信託投信", "blackrock": "貝萊德投信",
+                "tsit": "台新投信", "uobam": "大華銀投信"}
 
 
 class _TableParser(HTMLParser):
@@ -637,8 +639,123 @@ def src_caps():
     return out
 
 
+def pcf_ctbc(code, fund):
+    """中國信託投信：先取通行碼，再用 ETF 清單把代號換成基金代碼（例如 009828 → E0039），最後查申購買回清單。"""
+    api = "https://www.ctbcinvestments.com.tw/API/"
+    hdr = {"Content-Type": "application/json; charset=utf-8", "Origin": "https://www.ctbcinvestments.com",
+           "Referer": "https://www.ctbcinvestments.com/"}
+
+    def post(path, token, body=None):
+        j = fetch_json(f"pcf_{code}_{path.split('/')[-1]}", f"{api}{path}?token={urllib.parse.quote(token)}",
+                       data=json.dumps(dict({"token": token}, **(body or {}))), headers=hdr)
+        if j.get("ResultCode") != 0:
+            raise ValueError(f"中信 {path}：{j.get('ResultMsg')}")
+        return j.get("Data")
+
+    token = post("home/AuthToken", "www.ctbcinvestments.com")["token"]
+    if not fund:
+        rows = (post("etf/ETFList", token, {"IsWithETF": "Y"}) or {}).get("Data") or []
+        fund = next((r.get("FID") for r in rows if str(r.get("ETF_ID", "")).strip() == code), None)
+        if not fund:
+            raise ValueError(f"中信 ETF 清單找不到 {code}")
+    kinds = {"STOCK": "s", "FUTURE": "f", "FUTURES": "f", "BOND": "b", "ETF": "e", "FUND": "e"}
+    day = datetime.now(TZ).date()
+    for _ in range(8):  # 公告日通常是下一個營業日，往前找最近有資料的一天
+        d = post("etf/Buyback", token, {"FID": fund, "StartDate": f"{day:%Y/%m/%d}"}) or {}
+        groups = d.get("Detail") or []
+        items = [_item(kinds[g["Code"]], x.get("code_"), x.get("name_"), x.get("qty_"), x.get("weights_"))
+                 for g in groups if g.get("Code") in kinds for x in (g.get("Data") or [])]
+        if items:
+            head = (d.get("Data") or [{}])[0]
+            return items, ms_date(head.get("公告日")) or day
+        if FIXTURES:
+            break
+        day -= timedelta(days=1)
+    raise ValueError("中信最近 8 天都沒有申購買回清單")
+
+
+# 貝萊德的持股只標國家，不帶市場代碼；轉成和其他投信一致的「代號 市場」格式（美股、台股不加）
+BLACKROCK_MKT = {"日本": "JP", "韓國": "KS", "中國": "CH", "香港": "HK", "英國": "LN", "法國": "FP", "德國": "GY",
+                 "加拿大": "CN", "越南": "VN", "印度": "IN", "瑞士": "SW", "荷蘭": "NA", "澳洲": "AU",
+                 "瑞典": "SS", "丹麥": "DC", "義大利": "IM", "西班牙": "SM", "新加坡": "SP", "巴西": "BZ"}
+
+
+def _csv_rows(text: str):
+    return list(csv.reader(io.StringIO(text.lstrip("\ufeff"))))
+
+
+def pcf_blackrock(code, product):
+    """貝萊德投信：官網持股 CSV（id 是官網產品編號，例如 009826 → 351824）。"""
+    if not product:
+        raise ValueError("貝萊德需要在設定檔填官網產品編號（pcf.id）")
+    text = fetch_text(f"pcf_{code}", f"https://www.blackrock.com/tw/products/{product}/fund/1480664180144.ajax"
+                                      f"?fileType=csv&fileName={code}_holdings&dataType=fund")
+    rows = _csv_rows(text)
+    d = None
+    m = re.search(r"(\d{4})年(\d{1,2})月(\d{1,2})日", text[:200])
+    if m:
+        d = date(*(int(x) for x in m.groups()))
+    idx, data = table_rows([rows], "Ticker", "Name", "Asset Class", "Weight (%)", "Shares")
+    if not idx:
+        raise ValueError("貝萊德持股檔格式變了，找不到表頭")
+    items = []
+    for r in data:
+        if len(r) <= max(idx.values()):
+            continue
+        ac, tk = r[idx["Asset Class"]], r[idx["Ticker"]].strip()
+        loc = r[idx["Location"]].strip() if "Location" in idx else ""
+        if ac == "Futures":
+            continue  # 期貨只占極小比例且無權重，略過
+        if ac in ("Cash", "FX", "Cash Collateral and Margins") or not tk or tk == "-":
+            continue
+        if loc not in ("美國", "台灣", ""):
+            tk = f"{tk} {BLACKROCK_MKT.get(loc, loc)}"
+        items.append(_item("s", tk, r[idx["Name"]], r[idx["Shares"]], r[idx["Weight (%)"]]))
+    return items, d
+
+
+def pcf_tsit(code, _id):
+    """台新投信（含原新光投信）：申購買回清單頁面，用表單 POST 查詢。"""
+    url = "https://www.tsit.com.tw/ETF/Home/Pcf"
+    page = fetch_text(f"pcf_{code}_page", url)
+    m = re.search(r'id="MAX_DATE"[^>]*value="([\d-]+)"', page) or re.search(r'value="([\d-]+)"[^>]*id="MAX_DATE"', page)
+    day = m.group(1) if m else datetime.now(TZ).date().isoformat()
+    html = fetch_text(f"pcf_{code}", url, data=f"DATA_DATE={day}&ETF_ID={code}&FUND_TYPE=ALL",
+                      headers={"Content-Type": "application/x-www-form-urlencoded", "Referer": url})
+    tables = html_tables(html)
+    items = []
+    idx, rows = table_rows(tables, "代號", "名稱", "股數", "持股權重")
+    for r in rows:
+        if idx and len(r) > max(idx.values()) and r[idx["代號"]] and "合計" not in r[idx["代號"]]:
+            items.append(_item("s", r[idx["代號"]], r[idx["名稱"]], r[idx["股數"]], r[idx["持股權重"]].rstrip("%")))
+    idx, rows = table_rows(tables, "期貨代號", "期貨名稱", "口數", "持股權重")
+    for r in rows:
+        if idx and len(r) > max(idx.values()) and r[idx["期貨代號"]] and "合計" not in r[idx["期貨代號"]]:
+            items.append(_item("f", r[idx["期貨代號"]], r[idx["期貨名稱"]], r[idx["口數"]], r[idx["持股權重"]].rstrip("%")))
+    return items, ms_date(day)
+
+
+def pcf_uobam(code, fund):
+    """大華銀投信：官網 JSON（id 是基金代碼，例如 009829 → 00719554）。"""
+    if not fund:
+        raise ValueError("大華銀需要在設定檔填基金代碼（pcf.id）")
+    j = fetch_json(f"pcf_{code}", f"https://www.uobam.com.tw/json/reply/WebSitePcfRequest?fundID={fund}&pcfDate=",
+                   headers={"Referer": "https://www.uobam.com.tw/fund/etf/pcf"})
+    kinds = {"stock": "s", "futures": "f", "bond": "b", "fund": "e", "etf": "e"}
+    items = []
+    for x in j.get("result") or []:
+        k = kinds.get(str(x.get("kind", "")).lower())
+        if k:
+            name = x.get("cName")
+            if k == "f" and x.get("dym"):
+                name = f"{name} {x['dym']}"
+            items.append(_item(k, x.get("code"), name, x.get("qty"), x.get("weight")))
+    return items, ms_date(j.get("announce")) or ms_date(j.get("datadate"))
+
+
 PCF_FETCHERS = {"yuanta": pcf_yuanta, "cathay": pcf_cathay, "capital": pcf_capital,
-                "fubon": pcf_fubon, "uni": pcf_uni, "kgi": pcf_kgi, "fhtrust": pcf_fhtrust}
+                "fubon": pcf_fubon, "uni": pcf_uni, "kgi": pcf_kgi, "fhtrust": pcf_fhtrust,
+                "ctbc": pcf_ctbc, "blackrock": pcf_blackrock, "tsit": pcf_tsit, "uobam": pcf_uobam}
 
 
 def update_holdings(etf_cfg, now) -> tuple[dict, list[str]]:
