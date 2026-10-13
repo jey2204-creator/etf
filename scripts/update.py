@@ -201,16 +201,33 @@ def tiered_rate(aum_e8: float | None, tiers: list) -> float | None:
 
 # ---------------------------------------------------------------- 各資料來源
 
+MIS_RETRY_WAIT = 20  # 秒；投信更新預估淨值時，該投信整組會短暫從清單消失
+
+
 def src_mis(codes):
-    j = fetch_json("mis", URLS["mis"])
-    rows = [m for g in j.get("a1", []) for m in (g.get("msgArray") or [])]
+    rows, got = [], {}
+    for attempt in range(3):  # 有缺檔就等一下再抓，最多共 3 次，各次結果合併
+        if attempt:
+            print(f"[INFO] MIS 缺 {sorted(codes - set(got))}，{MIS_RETRY_WAIT} 秒後重抓", file=sys.stderr)
+            time.sleep(MIS_RETRY_WAIT)
+        try:
+            j = fetch_json("mis", URLS["mis"])
+        except Exception:  # noqa: BLE001
+            if not got:
+                raise
+            break
+        for m in (m for g in j.get("a1", []) for m in (g.get("msgArray") or [])):
+            code = str(m.get("a", "")).strip()
+            if code in codes and code not in got:
+                got[code] = m
+        if codes <= set(got):
+            break
+    rows = list(got.values())
     if not rows:
         raise ValueError("MIS 回傳沒有任何 ETF")
     out, dates = {}, []
     for m in rows:
         code = str(m.get("a", "")).strip()
-        if code not in codes:
-            continue
         d = roc_date(m.get("i"))
         dates.append(d)
         out[code] = {
