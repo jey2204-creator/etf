@@ -121,6 +121,15 @@ select{font:inherit;font-size:.85rem;padding:6px 10px;border-radius:8px;border:1
 .hm td.cnt{color:var(--muted);text-align:center}
 .ctl{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 .ctl select{font:inherit;font-size:.85rem;padding:6px 8px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--fg)}
+.colrow{display:grid;grid-template-columns:auto 1fr auto auto auto;gap:8px;align-items:center;padding:8px 4px;border-bottom:1px solid var(--line);background:var(--surface)}
+.colrow.drag{opacity:.85;box-shadow:0 4px 14px rgba(0,0,0,.18);position:relative;z-index:2}
+.colrow input{width:20px;height:20px;accent-color:var(--accent)}
+.colrow .nm{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.colrow .nm small{display:block;color:var(--muted);font-size:.72rem}
+.colrow.off .nm{opacity:.45}
+.mv{all:unset;cursor:pointer;width:34px;height:34px;display:grid;place-items:center;border-radius:8px;background:var(--bg);font-size:.9rem}
+.mv:disabled{opacity:.3}
+.grip{width:30px;height:34px;display:grid;place-items:center;color:var(--muted);font-size:1.2rem;touch-action:none;cursor:grab}
 .empty{padding:24px;text-align:center;color:var(--muted)}
 nav.tabs{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);display:flex;justify-content:center;padding:6px 8px calc(6px + env(safe-area-inset-bottom,0px));z-index:10}
 nav.tabs .in{display:grid;grid-template-columns:repeat(4,1fr);width:100%;max-width:640px}
@@ -189,7 +198,7 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
         <div class="ctl">
           <select id="hmTop" aria-label="顯示幾檔股票"><option value="50">市值前 50</option><option value="100">市值前 100</option><option value="0">全部</option></select>
           <select id="hmInd" aria-label="產業"><option value="">全部產業</option></select>
-          <button class="chip" id="hmOther" type="button" aria-pressed="false">含債券／槓桿</button>
+          <button class="chip" id="colBtn" type="button">⚙️ 欄位順序</button>
         </div>
         <div class="hm" id="hm"><div class="empty">成份股資料載入中…</div></div>
         <p class="hint" id="hmNote" style="margin:0"></p>
@@ -506,17 +515,31 @@ function bindHold(code,showAll){
 function refreshSheetHold(){  // 成份股晚一步到時，更新已開啟的面板
   if(sheetCode&&!$("sheet").hidden&&$("holdSec")){$("holdSec").outerHTML=holdingsHTML(sheetCode,false);bindHold(sheetCode,false)}
 }
-function closeSheet(){$("scrim").hidden=true;$("sheet").hidden=true;document.body.style.overflow="";lastFocus&&lastFocus.focus()}
+let afterClose=null;
+function closeSheet(){const f=afterClose;afterClose=null;f&&f();$("scrim").hidden=true;$("sheet").hidden=true;document.body.style.overflow="";lastFocus&&lastFocus.focus()}
 $("scrim").onclick=closeSheet;
 document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("sheet").hidden)closeSheet()});
 let y0=null;
-$("sheet").addEventListener("touchstart",e=>{y0=$("sheet").scrollTop<=0?e.touches[0].clientY:null},{passive:true});
+$("sheet").addEventListener("touchstart",e=>{y0=$("sheet").scrollTop<=0&&!e.target.closest(".grip")?e.touches[0].clientY:null},{passive:true});
 $("sheet").addEventListener("touchend",e=>{if(y0!=null&&e.changedTouches[0].clientY-y0>80)closeSheet();y0=null},{passive:true});
 
 // ===== 成份股重疊：兩檔共同持有的股票，取較低權重加總 =====
+// ===== 欄位順序（存在這台裝置）=====
+let colOrder=store.get("colOrder",null), colHidden=store.get("colHidden",null);
+function syncCols(){
+  const codes=ETFS.map(e=>e.code), first=colOrder==null;
+  const known=new Set(store.get("colKnown",[]));
+  colOrder=(colOrder||[]).filter(c=>codes.includes(c));
+  colHidden=(colHidden||[]).filter(c=>codes.includes(c));
+  codes.forEach(c=>{if(!colOrder.includes(c)){colOrder.push(c);
+    if((first||!known.has(c))&&["債券","槓桿"].includes((byCode[c]||{}).type))colHidden.push(c)}});
+  store.set("colKnown",codes);saveCols();
+}
+function saveCols(){store.set("colOrder",colOrder);store.set("colHidden",colHidden)}
+const orderIdx=c=>{const i=(colOrder||[]).indexOf(c);return i<0?999:i};
 let STOCK_ETFS=[];  // 參與重疊比較的股票型 ETF，資料載入後依類型與規模排序
 const TYPE_ORDER={"市值型":0,"主動式":1,"高股息":2};
-function setStockEtfs(){STOCK_ETFS=ETFS.filter(e=>e.type in TYPE_ORDER).sort((a,b)=>TYPE_ORDER[a.type]-TYPE_ORDER[b.type]||nz(b.aum)-nz(a.aum)).map(e=>e.code)}
+function setStockEtfs(){STOCK_ETFS=ETFS.filter(e=>e.type in TYPE_ORDER&&!(colHidden||[]).includes(e.code)).sort((a,b)=>orderIdx(a.code)-orderIdx(b.code)).map(e=>e.code)}
 function overlap(a,b){
   const wb={};stocksOf(b).forEach(x=>{wb[x.c]=x.w||0});
   return stocksOf(a).reduce((s,x)=>s+(wb[x.c]?Math.min(x.w||0,wb[x.c]):0),0);
@@ -598,10 +621,10 @@ function renderPf(){
 }
 
 // ===== 持股對照表：Y 軸股票（市值排序）、X 軸 ETF =====
-let hmShow=store.get("hmShow","w"), hmTop=store.get("hmTop","50"), hmInd="", hmOther=false, ovView=store.get("ovView","hm");
+let hmShow=store.get("hmShow","w"), hmTop=store.get("hmTop","50"), hmInd="", ovView=store.get("ovView","hm");
 const fmtCap=v=>v>=1e4?f(v/1e4,1)+" 兆":f(v,0)+" 億";
 const fmtLots=q=>!isNum(q)?"":q>=1e7?f(q/1e7,1)+"萬張":f(q/1e3,0)+"張";
-function hmCols(){return ETFS.filter(e=>hmOther||!["債券","槓桿"].includes(e.type)).filter(e=>HOLD[e.code]).map(e=>e.code)}
+function hmCols(){return colOrder.filter(c=>!colHidden.includes(c)&&byCode[c]&&HOLD[c])}
 function hmRows(cols){
   const caps=(HDATA&&HDATA.stocks)||{}, rows={};
   cols.forEach(c=>stocksOf(c).forEach(x=>{const r=(rows[x.c]=rows[x.c]||{c:x.c,n:x.n,by:{}});r.by[c]=x}));
@@ -617,7 +640,6 @@ function renderHm(){
   const S=[["w","比例"],["q","張數"],["b","兩者"]];
   $("hmShow").innerHTML=S.map(([k,t])=>`<button class="chip" data-s="${k}" aria-pressed="${k===hmShow}">${t}</button>`).join("");
   $("hmShow").querySelectorAll(".chip").forEach(b=>b.onclick=()=>{hmShow=b.dataset.s;store.set("hmShow",hmShow);renderHm()});
-  $("hmOther").setAttribute("aria-pressed",hmOther);
   if(!HDATA){$("hm").innerHTML='<div class="empty">成份股資料載入中…</div>';return}
   const cols=hmCols(), all=hmRows(cols);
   const inds=[...new Set(all.map(r=>r.ind).filter(Boolean))].sort();
@@ -654,7 +676,49 @@ function openStock(code){
 document.querySelectorAll(".seg button").forEach(b=>b.onclick=()=>{ovView=b.dataset.v;store.set("ovView",ovView);renderHm()});
 $("hmTop").value=hmTop;$("hmTop").onchange=e=>{hmTop=e.target.value;store.set("hmTop",hmTop);renderHm()};
 $("hmInd").onchange=e=>{hmInd=e.target.value;renderHm()};
-$("hmOther").onclick=()=>{hmOther=!hmOther;renderHm()};
+$("colBtn").onclick=openCols;
+function openCols(){
+  lastFocus=document.activeElement;sheetCode=null;
+  const draw=()=>{
+    $("colList").innerHTML=colOrder.map((c,i)=>{const e=byCode[c]||{},off=colHidden.includes(c);return `
+      <div class="colrow${off?" off":""}" data-c="${esc(c)}">
+        <input type="checkbox" aria-label="顯示 ${esc(c)}" ${off?"":"checked"}>
+        <div class="nm"><span class="num" style="color:var(--accent);font-weight:600">${esc(c)}</span> ${esc(e.name||"")}<small>${esc(e.type||"")}${HOLD[c]&&HOLD[c].items.length?"":" · 暫無成份股"}</small></div>
+        <button class="mv" data-m="-1" aria-label="上移" ${i===0?"disabled":""}>▲</button>
+        <button class="mv" data-m="1" aria-label="下移" ${i===colOrder.length-1?"disabled":""}>▼</button>
+        <span class="grip" aria-hidden="true">≡</span>
+      </div>`}).join("");
+    $("colList").querySelectorAll(".colrow").forEach(row=>{
+      const c=row.dataset.c;
+      row.querySelector("input").onchange=ev=>{colHidden=ev.target.checked?colHidden.filter(x=>x!==c):[...colHidden,c];saveCols();draw()};
+      row.querySelectorAll(".mv").forEach(b=>b.onclick=()=>{const i=colOrder.indexOf(c),j=i+ +b.dataset.m;if(j<0||j>=colOrder.length)return;
+        [colOrder[i],colOrder[j]]=[colOrder[j],colOrder[i]];saveCols();draw()});
+      const grip=row.querySelector(".grip");
+      grip.onpointerdown=ev=>{ev.preventDefault();grip.setPointerCapture(ev.pointerId);row.classList.add("drag");
+        const move=e2=>{const rows=[...$("colList").children];const y=e2.clientY;
+          const over=rows.find(r=>r!==row&&(()=>{const b=r.getBoundingClientRect();return y>b.top&&y<b.bottom})());
+          if(over){const b=over.getBoundingClientRect();$("colList").insertBefore(row,y<b.top+b.height/2?over:over.nextSibling)}};
+        const up=()=>{grip.onpointermove=null;grip.onpointerup=grip.onpointercancel=null;row.classList.remove("drag");
+          colOrder=[...$("colList").children].map(r=>r.dataset.c);saveCols();draw()};
+        grip.onpointermove=move;grip.onpointerup=grip.onpointercancel=up;};
+    });
+  };
+  const sortBy=fn=>{colOrder=[...colOrder].sort(fn);saveCols();draw()};
+  $("sheet").innerHTML=`<div class="grab"></div>
+    <div class="sheet-head"><div><h2 id="sheetTitle">調整 ETF 欄位</h2><p class="sub" style="margin:0">打勾顯示、▲▼ 或按住 ≡ 拖曳排序。對照表與重疊度都會套用。</p></div><button class="close" id="closeBtn" aria-label="完成">✕</button></div>
+    <div class="ctl" style="margin-bottom:8px"><button class="chip" id="cSize" type="button">依規模</button><button class="chip" id="cType" type="button">依類型</button><button class="chip" id="cReset" type="button">恢復預設</button></div>
+    <div id="colList"></div>
+    <button class="chip" id="colDone" type="button" style="margin-top:12px;background:var(--accent);color:var(--on-accent);border-color:var(--accent)">完成</button>`;
+  $("cSize").onclick=()=>sortBy((a,b)=>nz((byCode[b]||{}).aum)-nz((byCode[a]||{}).aum));
+  const TO={"市值型":0,"主動式":1,"高股息":2,"債券":3,"槓桿":4};
+  $("cType").onclick=()=>sortBy((a,b)=>(TO[(byCode[a]||{}).type]??5)-(TO[(byCode[b]||{}).type]??5)||nz((byCode[b]||{}).aum)-nz((byCode[a]||{}).aum));
+  $("cReset").onclick=()=>{colOrder=null;colHidden=null;store.set("colKnown",[]);syncCols();draw()};
+  afterClose=()=>{setStockEtfs();renderHm();renderOverlap()};
+  $("colDone").onclick=closeSheet;$("closeBtn").onclick=closeSheet;
+  draw();
+  $("sheet").setAttribute("aria-labelledby","sheetTitle");
+  $("scrim").hidden=false;$("sheet").hidden=false;$("sheet").scrollTop=0;document.body.style.overflow="hidden";
+}
 
 // ===== 新增／刪除 ETF：開一張 GitHub Issue，排程自動改清單 =====
 function repoInfo(){
@@ -748,7 +812,7 @@ showTab(store.get("tab","list"));
 const holdingsReady=loadHoldings().then(setHoldings).catch(()=>{HDATA={sources:{},etfs:{},warnings:[]}});
 const liveReady=holdingsReady.then(fillClientHoldings).catch(()=>false);
 loadData().then(async d=>{
-  DATA=d;ETFS=d.etfs;byCode=Object.fromEntries(ETFS.map(e=>[e.code,e]));setStockEtfs();showTab(store.get("tab","list"));
+  DATA=d;ETFS=d.etfs;byCode=Object.fromEntries(ETFS.map(e=>[e.code,e]));syncCols();setStockEtfs();showTab(store.get("tab","list"));
   renderStatus();stats();renderList();renderPfInputs();renderPf();renderFlow();renderHm();
   await holdingsReady;
   renderStatus();renderOverlap();renderHm();renderPf();refreshSheetHold();
