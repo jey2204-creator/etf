@@ -408,7 +408,7 @@ function stats(){
   cards.push(["清單總規模",f(tot,0)+" 億","",""]);
   $("stats").innerHTML=cards.map(([k,v,x,n])=>`<div class="stat"><div class="k">${k}</div><div class="v">${v}</div><div class="s">${x} ${esc(n)}</div></div>`).join("");
 }
-const TYPES=["全部","市值型","高股息","主動式","槓桿","債券"];
+const TYPES=["全部","市值型","高股息","主動式","海外","槓桿","債券"];
 $("chips").innerHTML=TYPES.map(t=>`<button class="chip" data-f="${t}" aria-pressed="${t===filter}">${t}</button>`).join("");
 $("chips").querySelectorAll(".chip").forEach(c=>c.onclick=()=>{filter=c.dataset.f;$("chips").querySelectorAll(".chip").forEach(x=>x.setAttribute("aria-pressed",x===c));renderList()});
 $("sort").value=sortBy;
@@ -743,7 +743,7 @@ function openCols(){
     <div id="colList"></div>
     <button class="chip" id="colDone" type="button" style="margin-top:12px;background:var(--accent);color:var(--on-accent);border-color:var(--accent)">完成</button>`;
   $("cSize").onclick=()=>sortBy((a,b)=>nz((byCode[b]||{}).aum)-nz((byCode[a]||{}).aum));
-  const TO={"市值型":0,"主動式":1,"高股息":2,"債券":3,"槓桿":4};
+  const TO={"市值型":0,"主動式":1,"高股息":2,"海外":3,"債券":4,"槓桿":5};
   $("cType").onclick=()=>sortBy((a,b)=>(TO[(byCode[a]||{}).type]??5)-(TO[(byCode[b]||{}).type]??5)||nz((byCode[b]||{}).aum)-nz((byCode[a]||{}).aum));
   $("cReset").onclick=()=>{colOrder=null;colHidden=null;store.set("colKnown",[]);syncCols();draw()};
   afterClose=()=>{setStockEtfs();renderHm();renderOverlap()};
@@ -761,7 +761,7 @@ function repoInfo(){
 function issueUrl(title,body){const [o,r]=repoInfo();return `https://github.com/${o}/${r}/issues/new?title=${encodeURIComponent(title)}&body=${encodeURIComponent(body)}`}
 function openManage(){
   lastFocus=document.activeElement;sheetCode=null;
-  const types=["自動判斷","市值型","高股息","主動式","槓桿","債券"];
+  const types=["自動判斷","市值型","高股息","主動式","海外","槓桿","債券"];
   $("sheet").innerHTML=`
     <div class="grab"></div>
     <div class="sheet-head"><h2 id="sheetTitle">新增／刪除 ETF</h2><button class="close" id="closeBtn" aria-label="關閉">✕</button></div>
