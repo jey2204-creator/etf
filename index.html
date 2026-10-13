@@ -68,7 +68,8 @@ select{font:inherit;font-size:.85rem;padding:6px 10px;border-radius:8px;border:1
 .prem.hi{background:var(--up-bg);color:var(--up);font-weight:600}
 .prem.lo{background:var(--down-bg);color:var(--down);font-weight:600}
 .panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px}
-.hold{display:grid;grid-template-columns:5.5em 1fr auto;gap:8px 10px;align-items:center;font-size:.86rem}
+.hold{display:grid;grid-template-columns:minmax(6.5em,1.3fr) 1fr auto;gap:8px 10px;align-items:center;font-size:.86rem}
+.hold>div{min-width:0;overflow-wrap:anywhere}
 .hold .r{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums}
 .hold small{display:block;color:var(--muted);font-size:.72rem}
 .barw{height:8px;background:var(--line);border-radius:4px;overflow:hidden}
@@ -148,8 +149,8 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
   <!-- 分頁 2：成份股重疊 -->
   <div id="tab-overlap" class="tab" hidden>
     <div style="display:flex;flex-direction:column;gap:12px">
-      <h2>成份股重疊度<span class="badge">示意資料</span></h2>
-      <p class="sub">兩檔共同持股的權重重疊比例。數字越高，代表越像同一檔，一起持有分散效果越差。成份股尚未接上投信每日清單，目前的權重是示意值。</p>
+      <h2>成份股重疊度</h2>
+      <p class="sub">兩檔共同持有的股票，取較低的權重加總。數字越高代表越像同一檔，一起持有的分散效果越差。</p>
       <div class="panel matrix" id="matrix"></div>
       <div class="panel" id="overlapNote"></div>
     </div>
@@ -159,7 +160,7 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
   <div id="tab-pf" class="tab" hidden>
     <div style="display:flex;flex-direction:column;gap:12px">
       <h2>我的組合穿透</h2>
-      <p class="sub">輸入持有張數，算出你實際持有哪些個股、各佔多少。組合市值用真實市價；個股拆解用的成份股權重目前是示意值。</p>
+      <p class="sub">輸入持有張數，用最新收盤價和各投信公布的成份股，算出你實際持有哪些個股、各佔多少。</p>
       <div class="panel" id="pfInputs"></div>
       <div class="panel">
         <div class="sub">組合市值（最新收盤價）</div>
@@ -167,9 +168,9 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
         <div id="pfWarn" class="hint"></div>
       </div>
       <div class="panel">
-        <div class="sub" style="margin-bottom:10px">實際個股曝險（前 8 大）<span class="badge">示意資料</span></div>
+        <div class="sub" style="margin-bottom:10px">實際曝險（前 8 大）</div>
         <div class="hold" id="pfExpo"></div>
-        <p class="hint">以各檔前五大持股計算，其餘歸入「其他」。</p>
+        <p class="hint">以完整成份股拆解；期貨以名目本金計入，槓桿型 ETF 的合計會超過 100%。</p>
       </div>
     </div>
   </div>
@@ -187,19 +188,9 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
 <div class="sheet" id="sheet" role="dialog" aria-modal="true" hidden></div>
 
 <script>
-// ===== 成份股：示意權重（第 4 步改接投信每日申購買回清單）=====
-const HOLD={
- "0050":[["台積電",61.2],["鴻海",4.8],["聯發科",4.1],["台達電",2.3],["廣達",1.9]],
- "0056":[["聯詠",4.6],["華碩",4.1],["廣達",3.9],["仁寶",3.5],["英業達",3.3]],
- "00878":[["聯發科",5.2],["廣達",4.8],["華碩",4.5],["聯詠",4.2],["中信金",3.9]],
- "00919":[["聯發科",9.1],["長榮",8.4],["瑞昱",6.2],["聯詠",5.6],["中華電",4.8]],
- "006208":[["台積電",61.0],["鴻海",4.8],["聯發科",4.1],["台達電",2.3],["廣達",1.9]],
- "00981A":[["台積電",9.6],["奇鋐",7.8],["台光電",6.9],["智邦",6.1],["川湖",5.4]],
- "00631L":[["台指期貨",198.5],["0050",1.6]],
- "00937B":[["Oracle 2054",3.1],["AT&T 2053",2.9],["Comcast 2055",2.7],["Verizon 2052",2.6],["Pfizer 2053",2.4]],
- "009816":[["台積電",48.5],["鴻海",5.9],["聯發科",5.1],["台達電",3.0],["廣達",2.4]],
- "0052":[["台積電",65.3],["聯發科",8.6],["鴻海",3.0],["台達電",2.3],["日月光投控",1.4]]
-};
+// ===== 成份股：各投信每日申購買回清單（data/holdings.json）=====
+let HOLD={}, HDATA=null;
+const KIND={s:"股票",f:"期貨",b:"債券",e:"ETF"};
 
 let DATA=null, ETFS=[], byCode={};
 const $=id=>document.getElementById(id);
@@ -218,20 +209,29 @@ const feeOf=e=>e.fee&&isNum(e.fee.mgmt)?e.fee.mgmt:null;
 function yieldText(e){if(!e.div||e.div.per_year===0)return"不配息";return isNum(e.div.yield)?f(e.div.yield)+"%":"—"}
 
 // ===== 讀資料：同時抓 GitHub 原始檔與網站上的檔案，取較新的那份 =====
-function dataUrls(){
-  const urls=["data/etf.json"];
+function dataUrls(file){
+  const urls=["data/"+file];
   const m=location.hostname.match(/^([^.]+)\.github\.io$/);
   const repo=location.pathname.split("/").filter(Boolean)[0];
-  if(m&&repo)urls.unshift(`https://raw.githubusercontent.com/${m[1]}/${repo}/main/data/etf.json`);
+  if(m&&repo)urls.unshift(`https://raw.githubusercontent.com/${m[1]}/${repo}/main/data/${file}`);
   return urls;
 }
-async function loadData(){
-  const res=await Promise.allSettled(dataUrls().map(u=>fetch(u,{cache:"no-cache"}).then(r=>{if(!r.ok)throw new Error(r.status);return r.json()})));
-  const ok=res.filter(r=>r.status==="fulfilled"&&r.value&&Array.isArray(r.value.etfs)).map(r=>r.value);
+async function loadNewest(file,valid){
+  const res=await Promise.allSettled(dataUrls(file).map(u=>fetch(u,{cache:"no-cache"}).then(r=>{if(!r.ok)throw new Error(r.status);return r.json()})));
+  const ok=res.filter(r=>r.status==="fulfilled"&&r.value&&valid(r.value)).map(r=>r.value);
   if(!ok.length)throw new Error("沒有可用的資料");
   ok.sort((a,b)=>String(b.generated_at).localeCompare(String(a.generated_at)));
   return ok[0];
 }
+const loadData=()=>loadNewest("etf.json",d=>Array.isArray(d.etfs));
+const loadHoldings=()=>loadNewest("holdings.json",d=>d.etfs&&typeof d.etfs==="object");
+function setHoldings(h){
+  HDATA=h;HOLD={};
+  Object.entries(h.etfs||{}).forEach(([code,e])=>{
+    HOLD[code]={date:e.date,issuer:e.issuer,stale:!!e.stale,items:(e.items||[]).map(([k,c,n,q,w])=>({k,c,n,q,w}))};
+  });
+}
+const stocksOf=code=>(HOLD[code]?HOLD[code].items.filter(x=>x.k==="s"):[]);
 
 // ===== 分頁 =====
 function showTab(t){
@@ -244,16 +244,20 @@ document.querySelectorAll("nav.tabs button").forEach(b=>b.onclick=()=>showTab(b.
 
 // ===== 資料狀態 =====
 function renderStatus(){
-  const s=DATA.sources||{};
-  const failed=Object.values(s).filter(x=>!x.ok);
+  const s=DATA.sources||{}, hs=(HDATA&&HDATA.sources)||{};
+  const all=[...Object.values(s),...Object.values(hs)];
+  const failed=all.filter(x=>!x.ok);
   const ageH=(Date.now()-new Date(DATA.generated_at))/36e5;
-  let html=`行情 <b>${md(s.mis&&s.mis.as_of)}</b> 收盤 · 受益人數 <b>${md(s.tdcc&&s.tdcc.as_of)}</b>（集保每週）· 更新 <b>${fmtTime(DATA.generated_at)}</b>`;
+  const hDates=Object.values(HOLD).map(h=>h.date).filter(Boolean).sort();
+  let html=`行情 <b>${md(s.mis&&s.mis.as_of)}</b> 收盤 · 受益人數 <b>${md(s.tdcc&&s.tdcc.as_of)}</b>（集保每週）`
+    +(hDates.length?` · 成份股 <b>${md(hDates[hDates.length-1])}</b>`:"")+` · 更新 <b>${fmtTime(DATA.generated_at)}</b>`;
   if(failed.length)html+=`<div class="warnline"><b>⚠️ 部分來源這次沒抓到</b>：${failed.map(x=>`${esc(x.name)}（沿用 ${md(x.as_of)}）`).join("、")}</div>`;
   if(ageH>72)html+=`<div class="warnline"><b>⚠️ 資料超過 3 天沒更新</b>，請到 GitHub Actions 查看排程是否停止。</div>`;
-  if(DATA.warnings&&DATA.warnings.length)html+=`<div class="warnline"><b>⚠️ 檢查提醒</b>：${DATA.warnings.map(esc).join("；")}</div>`;
+  const warns=[...(DATA.warnings||[]),...((HDATA&&HDATA.warnings)||[])];
+  if(warns.length)html+=`<div class="warnline"><b>⚠️ 檢查提醒</b>：${warns.map(esc).join("；")}</div>`;
   $("status").innerHTML=html;
   $("genAt").textContent="更新 "+fmtTime(DATA.generated_at);
-  $("sources").innerHTML=Object.values(s).map(x=>`<div>${esc(x.name)}</div><div class="num ${x.ok?"ok":"ng"}">${x.ok?"✓":"✗"} ${x.as_of?md(x.as_of):""}</div>`).join("");
+  $("sources").innerHTML=all.map(x=>`<div>${esc(x.name)}</div><div class="num ${x.ok?"ok":"ng"}">${x.ok?"✓":"✗"} ${x.as_of?md(x.as_of):""}</div>`).join("");
 }
 
 // ===== 總覽 =====
@@ -303,8 +307,6 @@ function renderList(){
 let lastFocus=null;
 function openSheet(code){
   const e=byCode[code];if(!e)return;lastFocus=document.activeElement;
-  const h=HOLD[code]||[];
-  const max=Math.max(1,...h.map(x=>Math.min(x[1],100)));
   const d=e.div||{},fee=e.fee||{};
   const divRows=d.per_year===0?`<dt>收益分配</dt><dd>不配息</dd>`:`
       <dt>配息頻率</dt><dd>${esc(d.freq||"—")}</dd>
@@ -336,15 +338,7 @@ function openSheet(code){
       <p class="sub" style="margin:0">${esc(fee.note||"")}${fee.tiered?"。上方費率依目前規模分段加權。":""}</p>
       <p class="sub" style="margin:0">手動查核 ${ymd(fee.checked)}${fee.source?` · <a href="${esc(fee.source)}" target="_blank" rel="noopener">來源</a>`:""}</p>
     </section>
-    <section>
-      <div class="bar-row"><b>前五大成份股<span class="badge">示意資料</span></b></div>
-      <div class="hold">${h.map(([n,w])=>`
-        <div>${esc(n)}</div>
-        <div class="barw"><i style="width:${Math.min(w,100)/max*100}%"></i></div>
-        <div class="r">${f(w,1)}%</div>`).join("")}
-      </div>
-      <p class="hint" style="margin:0">成份股權重尚未接上投信每日清單，僅供版面參考。</p>
-    </section>
+    ${holdingsHTML(code,false)}
     <section>
       <b>資料日期</b>
       <dl class="rows">
@@ -354,10 +348,44 @@ function openSheet(code){
         <dt>成交量</dt><dd>${ymd(e.volume_date)}</dd>
       </dl>
     </section>`;
+  bindHold(code,false);
   $("sheet").setAttribute("aria-labelledby","sheetTitle");
   $("scrim").hidden=false;$("sheet").hidden=false;$("sheet").scrollTop=0;
   document.body.style.overflow="hidden";
   $("closeBtn").onclick=closeSheet;$("closeBtn").focus();
+}
+function qtyText(x){
+  if(!isNum(x.q))return"";
+  if(x.k==="s"||x.k==="e")return f(x.q/1000,x.q<1e5?1:0)+" 張";
+  if(x.k==="f")return f(x.q,0)+" 口";
+  if(x.k==="b")return "面額 "+(x.q>=1e8?f(x.q/1e8,2)+" 億":f(x.q/1e4,0)+" 萬");
+  return f(x.q,0);
+}
+function holdingsHTML(code,showAll){
+  const H=HOLD[code];
+  if(!H||!H.items.length)return `<section id="holdSec"><b>成份股</b><p class="hint" style="margin:0">${HDATA?"目前取不到這檔的成份股資料。":"成份股資料載入中…"}</p></section>`;
+  const items=H.items, byK={};
+  items.forEach(x=>{const g=(byK[x.k]=byK[x.k]||{n:0,w:0});g.n++;g.w+=x.w||0});
+  const st=items.filter(x=>x.k==="s");
+  const top10=st.slice(0,10).reduce((a,x)=>a+(x.w||0),0);
+  const summary=Object.entries(byK).map(([k,v])=>`${KIND[k]||k} ${v.n} 筆、合計 ${f(v.w,1)}%`).join(" · ")+(st.length>10?` · 前十大股票 ${f(top10,1)}%`:"");
+  const list=showAll?items:items.slice(0,10);
+  const max=Math.max(1,...list.map(x=>Math.min(Math.abs(x.w||0),100)));
+  return `<section id="holdSec">
+    <div class="bar-row"><b>成份股${H.stale?'<span class="badge">沿用前次資料</span>':""}</b><span class="sub">${esc(H.issuer)} · ${ymd(H.date)}</span></div>
+    <p class="sub" style="margin:0">${summary}</p>
+    <div class="hold">${list.map(x=>`
+      <div>${esc(x.n)}<small>${esc(x.k==="s"||x.k==="e"?x.c:(KIND[x.k]||""))}${qtyText(x)?" · "+qtyText(x):""}</small></div>
+      <div class="barw"><i style="width:${Math.min(Math.abs(x.w||0),100)/max*100}%"></i></div>
+      <div class="r">${f(x.w,2)}%</div>`).join("")}
+    </div>
+    ${items.length>10?`<button class="chip" id="holdMore" style="align-self:center">${showAll?"只看前 10 筆":`顯示全部 ${items.length} 筆`}</button>`:""}
+    <p class="hint" style="margin:0">權重為占基金淨資產比例，期貨以名目本金計算。</p>
+  </section>`;
+}
+function bindHold(code,showAll){
+  const b=$("holdMore");if(!b)return;
+  b.onclick=()=>{$("holdSec").outerHTML=holdingsHTML(code,!showAll);bindHold(code,!showAll)};
 }
 function closeSheet(){$("scrim").hidden=true;$("sheet").hidden=true;document.body.style.overflow="";lastFocus&&lastFocus.focus()}
 $("scrim").onclick=closeSheet;
@@ -366,11 +394,11 @@ let y0=null;
 $("sheet").addEventListener("touchstart",e=>{y0=$("sheet").scrollTop<=0?e.touches[0].clientY:null},{passive:true});
 $("sheet").addEventListener("touchend",e=>{if(y0!=null&&e.changedTouches[0].clientY-y0>80)closeSheet();y0=null},{passive:true});
 
-// ===== 成份股重疊（示意）=====
+// ===== 成份股重疊：兩檔共同持有的股票，取較低權重加總 =====
 const STOCK_ETFS=["0050","006208","009816","0052","00981A","0056","00878","00919"];
 function overlap(a,b){
-  const wb=Object.fromEntries((HOLD[b]||[]).map(x=>[x[0],x[1]]));
-  return (HOLD[a]||[]).reduce((s,[n,w])=>s+(wb[n]?Math.min(w,wb[n]):0),0);
+  const wb={};stocksOf(b).forEach(x=>{wb[x.c]=x.w||0});
+  return stocksOf(a).reduce((s,x)=>s+(wb[x.c]?Math.min(x.w||0,wb[x.c]):0),0);
 }
 function renderOverlap(){
   const cell=v=>{const a=Math.min(v/80,1);return `background:color-mix(in srgb,var(--accent) ${Math.round(a*85)}%,var(--bg));color:${a>.55?"var(--on-accent)":"var(--fg)"}`};
@@ -385,9 +413,11 @@ function renderOverlap(){
   const pairs=[];
   STOCK_ETFS.forEach((a,i)=>STOCK_ETFS.slice(i+1).forEach(b=>pairs.push([a,b,overlap(a,b)])));
   pairs.sort((x,y)=>y[2]-x[2]);
-  $("overlapNote").innerHTML=`<b>重疊最高的組合</b><div class="hold" style="margin-top:10px;grid-template-columns:auto 1fr auto">${pairs.slice(0,4).map(([a,b,v])=>`
-    <div class="num">${a} × ${b}</div><div class="barw"><i style="width:${v}%"></i></div><div class="r">${f(v,1)}%</div>`).join("")}</div>
-    <p class="hint">以前五大持股的示意權重計算。正式版會用投信每日公布的完整成份股。</p>`;
+  const missing=STOCK_ETFS.filter(c=>!stocksOf(c).length);
+  const dates=STOCK_ETFS.map(c=>HOLD[c]&&HOLD[c].date).filter(Boolean).sort();
+  $("overlapNote").innerHTML=`<b>重疊最高的組合</b><div class="hold" style="margin-top:10px;grid-template-columns:auto 1fr auto">${pairs.slice(0,5).map(([a,b,v])=>`
+    <div class="num">${a} × ${b}</div><div class="barw"><i style="width:${Math.min(v,100)}%"></i></div><div class="r">${f(v,1)}%</div>`).join("")}</div>
+    <p class="hint">用各投信公布的完整股票成份計算${dates.length?`（資料日 ${md(dates[0])}${dates[0]!==dates[dates.length-1]?"–"+md(dates[dates.length-1]):""}）`:""}。${missing.length?`缺少 ${missing.join("、")} 的資料，相關格子會偏低。`:""}</p>`;
 }
 
 // ===== 我的組合 =====
@@ -402,32 +432,58 @@ function renderPfInputs(){
     store.set("pf",pf);renderPf();
   });
 }
+function futKey(x){
+  const s=x.c+" "+x.n;
+  if(/電子/.test(s))return["f:TE","電子期貨"];
+  if(/金融/.test(s))return["f:TF","金融期貨"];
+  if(/50ETF|NYF|台灣50/.test(s))return["f:NYF","台灣50ETF期貨"];
+  if(/TX|台股|臺股|台指|臺指/.test(s))return["f:TX","台股期貨"];
+  return["f:"+x.c,x.n.replace(/\s*\d{4}\/?\d{2}\s*/g," ").trim()||x.c];
+}
 function renderPf(){
-  let total=0;const expo={};
+  let total=0;const expo={},names={},missing=[];
+  const add=(k,n,v)=>{expo[k]=(expo[k]||0)+v;names[k]=names[k]||n};
   Object.entries(pf).forEach(([c,lots])=>{
     const e=byCode[c];if(!e||!isNum(e.price))return;
-    const val=lots*1000*e.price;total+=val;let used=0;
-    (HOLD[c]||[]).forEach(([n,w])=>{expo[n]=(expo[n]||0)+val*w/100;used+=w});
-    if(used<100)expo["其他"]=(expo["其他"]||0)+val*(100-used)/100;
+    const val=lots*1000*e.price;total+=val;
+    const H=HOLD[c];
+    if(!H||!H.items.length){missing.push(c);add("x:"+c,`${c}（成份股未取得）`,val);return}
+    let used=0;
+    H.items.forEach(x=>{
+      const w=x.w||0;used+=w;
+      if(x.k==="s")add("s:"+x.c,x.n,val*w/100);
+      else if(x.k==="f"){const[k,n]=futKey(x);add(k,n+"（曝險）",val*w/100)}
+      else if(x.k==="b")add("b:"+c,`${e.name} 債券部位`,val*w/100);
+      else add("e:"+x.c,x.n,val*w/100);
+    });
+    if(used<100)add("cash","現金與其他",val*(100-used)/100);
   });
   $("pfTotal").textContent=total?"NT$ "+f(total,0):"尚未輸入持股";
-  const rows=Object.entries(expo).filter(([n])=>n!=="其他").sort((a,b)=>b[1]-a[1]).slice(0,8);
-  if(expo["其他"])rows.push(["其他",expo["其他"]]);
+  const sorted=Object.entries(expo).filter(([k])=>k!=="cash").sort((a,b)=>b[1]-a[1]);
+  const rows=sorted.slice(0,8), rest=sorted.slice(8).reduce((a,[,v])=>a+v,0)+(expo.cash||0);
+  if(rest>0)rows.push(["rest",rest]);names.rest=`其他 ${sorted.length>8?sorted.length-8+" 項＋":""}現金`;
   const max=Math.max(...rows.map(r=>r[1]),1);
-  $("pfExpo").innerHTML=total?rows.map(([n,v])=>`
-    <div>${esc(n)}<small>NT$ ${f(v/1e4,0)} 萬</small></div>
+  $("pfExpo").innerHTML=total?rows.map(([k,v])=>`
+    <div>${esc(names[k])}<small>NT$ ${f(v/1e4,0)} 萬</small></div>
     <div class="barw"><i style="width:${v/max*100}%"></i></div>
     <div class="r">${f(v/total*100,1)}%</div>`).join(""):`<div class="sub" style="grid-column:1/-1">在上方輸入任一檔的張數就會開始計算。</div>`;
-  const tsmc=total?(expo["台積電"]||0)/total*100:0;
-  $("pfWarn").innerHTML=tsmc>=30?`<span class="warn">⚠️ 台積電約佔 ${f(tsmc,1)}%</span>（依示意權重），單一個股集中度偏高。`:total?`最大單一個股約佔 ${f(rows[0][1]/total*100,1)}%（依示意權重）。`:"";
+  const exposure=total?Object.values(expo).reduce((a,v)=>a+v,0)/total*100:0;
+  const tsmc=total?(expo["s:2330"]||0)/total*100:0;
+  const top=sorted.find(([k])=>k.startsWith("s:"));
+  let msg=tsmc>=30?`<span class="warn">⚠️ 台積電約佔 ${f(tsmc,1)}%</span>，單一個股集中度偏高。`:total&&top?`最大單一個股是${esc(names[top[0]])}，約佔 ${f(top[1]/total*100,1)}%。`:"";
+  if(exposure>110)msg+=` 含槓桿後總曝險約 ${f(exposure,0)}%。`;
+  if(missing.length)msg+=` ${missing.join("、")} 的成份股暫時取不到，未拆解。`;
+  $("pfWarn").innerHTML=msg;
 }
 
 // ===== 啟動 =====
 showTab(store.get("tab","list"));
-renderOverlap();
-loadData().then(d=>{
+const holdingsReady=loadHoldings().then(setHoldings).catch(()=>{HDATA={sources:{},etfs:{},warnings:[]}});
+loadData().then(async d=>{
   DATA=d;ETFS=d.etfs;byCode=Object.fromEntries(ETFS.map(e=>[e.code,e]));
   renderStatus();stats();renderList();renderPfInputs();renderPf();
+  await holdingsReady;
+  renderStatus();renderOverlap();renderPf();
 }).catch(err=>{
   $("status").innerHTML=`<div class="warnline"><b>⚠️ 無法載入資料</b>：${esc(err.message)}。請確認網路連線後重新整理。</div>`;
   $("list").innerHTML='<div class="empty">目前沒有資料可以顯示</div>';
