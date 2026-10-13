@@ -17,8 +17,9 @@ import update as U  # noqa: E402
 
 TYPES = ["市值型", "高股息", "主動式", "槓桿", "債券"]
 ISSUERS = [("主動統一", "uni"), ("統一", "uni"), ("元大", "yuanta"), ("國泰", "cathay"),
-           ("群益", "capital"), ("富邦", "fubon"), ("凱基", "kgi")]
-NO_ID_NEEDED = {"yuanta", "fubon"}  # 這兩家只要 ETF 代號就查得到成份股
+           ("群益", "capital"), ("富邦", "fubon"), ("凱基", "kgi"),
+           ("主動復華", "fhtrust"), ("復華", "fhtrust")]
+NO_ID_NEEDED = {"yuanta", "fubon", "fhtrust"}  # 只要 ETF 代號就查得到成份股（復華會自動查基金代碼）
 
 
 def guess_type(code: str, name: str) -> str:

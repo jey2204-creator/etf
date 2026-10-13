@@ -345,7 +345,8 @@ def src_tpex_pre(codes):
 # b=債券（面額）、e=ETF（單位數）。
 
 ISSUER_NAMES = {"yuanta": "元大投信", "cathay": "國泰投信", "capital": "群益投信",
-                "fubon": "富邦投信", "uni": "統一投信", "kgi": "凱基投信"}
+                "fubon": "富邦投信", "uni": "統一投信", "kgi": "凱基投信",
+                "fhtrust": "復華投信"}
 
 
 class _TableParser(HTMLParser):
@@ -548,8 +549,36 @@ def pcf_kgi(code, fund):
     return items, ms_date(m.group(1)) if m else None
 
 
+def fhtrust_fund_id(code):
+    """復華投信網站的基金代碼（例如 00929 → ETF21）。"""
+    j = fetch_json("fhtrust_list", "https://www.fhtrust.com.tw/api/fundList")
+    for x in j.get("result") or []:
+        if str(x.get("etf002", "")).strip() == code:
+            return x.get("fundID")
+    raise ValueError(f"復華基金清單找不到 {code}")
+
+
+def pcf_fhtrust(code, fund):
+    fund = fund or fhtrust_fund_id(code)
+    day = datetime.now(TZ).date()
+    for _ in range(8):  # 當天的清單晚上才出來，往前找最近有資料的一天
+        j = fetch_json(f"pcf_{code}", f"https://www.fhtrust.com.tw/api/assets?fundID={fund}&qDate={day:%Y/%m/%d}",
+                       headers={"Referer": f"https://www.fhtrust.com.tw/ETF/etf_detail/{fund}"})
+        r = (j.get("result") or [{}])[0]
+        if r.get("detail"):
+            kinds = {"股票": "s", "期貨": "f", "債券": "b", "基金": "e"}
+            items = [_item(kinds[x["ftype"]], x.get("stockid"), x.get("stockname"), x.get("qshare"),
+                           str(x.get("prate_addaccint", "")).rstrip("%"))
+                     for x in r["detail"] if x.get("ftype") in kinds]
+            return items, ms_date(r.get("dDate"))
+        if FIXTURES:
+            break
+        day -= timedelta(days=1)
+    raise ValueError("復華最近 8 天都沒有資產明細")
+
+
 PCF_FETCHERS = {"yuanta": pcf_yuanta, "cathay": pcf_cathay, "capital": pcf_capital,
-                "fubon": pcf_fubon, "uni": pcf_uni, "kgi": pcf_kgi}
+                "fubon": pcf_fubon, "uni": pcf_uni, "kgi": pcf_kgi, "fhtrust": pcf_fhtrust}
 
 
 def update_holdings(etf_cfg, now) -> tuple[dict, list[str]]:
