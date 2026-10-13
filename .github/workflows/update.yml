@@ -8,6 +8,7 @@ on:
 
 permissions:
   contents: write
+  issues: write
 
 concurrency:
   group: update-data
@@ -23,6 +24,12 @@ jobs:
           TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: git clone --depth 1 "https://x-access-token:${TOKEN}@github.com/${GITHUB_REPOSITORY}.git" repo
 
+      - name: 補做還沒處理的新增／刪除 Issue
+        working-directory: repo
+        env:
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 scripts/process_issues.py apply || echo "Issue 處理失敗，略過"
+
       - name: 抓取資料
         working-directory: repo
         run: |
@@ -34,11 +41,19 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/
+          git add config/ data/
           if git diff --cached --quiet; then echo "資料沒有變動"; exit 0; fi
-          git commit -m "資料更新 $(TZ=Asia/Taipei date '+%Y-%m-%d %H:%M')"
+          msg="資料更新 $(TZ=Asia/Taipei date '+%Y-%m-%d %H:%M')"
+          [ -n "${ISSUES_CHANGED:-}" ] && msg="清單變更：${ISSUES_CHANGED}＋${msg}"
+          git commit -m "$msg"
           git pull --rebase --quiet
           git push
+
+      - name: 回覆並關閉 Issue
+        working-directory: repo
+        env:
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 scripts/process_issues.py reply || true
 
       - name: 回報來源異常
         if: env.PARTIAL == '1'
