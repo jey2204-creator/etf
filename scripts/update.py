@@ -19,6 +19,7 @@
 from __future__ import annotations
 
 import csv
+import http.cookiejar
 import io
 import json
 import os
@@ -28,12 +29,14 @@ import sys
 import time
 import urllib.request
 from datetime import date, datetime, timedelta, timezone
+from html.parser import HTMLParser
 from pathlib import Path
 
 TZ = timezone(timedelta(hours=8))
 ROOT = Path(__file__).resolve().parent.parent
 CONFIG = ROOT / "config" / "etfs.json"
 OUT = ROOT / "data" / "etf.json"
+HOLDINGS = ROOT / "data" / "holdings.json"
 HISTORY = ROOT / "data" / "history.csv"
 FIXTURES = os.environ.get("ETF_FIXTURES")
 UA = "Mozilla/5.0 (compatible; etf-dashboard/1.0; +https://github.com/jey2204-creator/etf)"
@@ -70,25 +73,33 @@ def ssl_context() -> ssl.SSLContext:
 
 
 _CTX = ssl_context()
+_OPENER = urllib.request.build_opener(
+    urllib.request.HTTPCookieProcessor(http.cookiejar.CookieJar()),
+    urllib.request.HTTPSHandler(context=_CTX),
+)
 _last_host_hit: dict[str, float] = {}
 
 
-def fetch(key: str, url: str, *, tries: int = 3, timeout: int = 40) -> bytes:
-    """下載資料；同一主機兩次請求至少間隔 2 秒，避免被交易所限流。"""
+def fetch(key: str, url: str, *, data: bytes | str | None = None, headers: dict | None = None,
+          tries: int = 3, timeout: int = 40) -> bytes:
+    """下載資料（有 data 時用 POST）；同一主機兩次請求至少間隔 2 秒，避免被限流。會保留 cookie。"""
     if FIXTURES:
         return (Path(FIXTURES) / key).read_bytes()
     host = url.split("/")[2]
+    body_out = data.encode("utf-8") if isinstance(data, str) else data
     last_err: Exception | None = None
     for attempt in range(tries):
         wait = 2.0 - (time.time() - _last_host_hit.get(host, 0))
         if wait > 0:
             time.sleep(wait)
         try:
-            headers = {"User-Agent": UA, "Accept": "*/*"}
+            h = {"User-Agent": UA, "Accept": "*/*", "Accept-Language": "zh-TW,zh;q=0.9"}
             if "mis.twse" in host:
-                headers["Referer"] = "https://mis.twse.com.tw/stock/etf_nav.jsp?ex=tse"
-            req = urllib.request.Request(url, headers=headers)
-            with urllib.request.urlopen(req, timeout=timeout, context=_CTX) as r:
+                h["Referer"] = "https://mis.twse.com.tw/stock/etf_nav.jsp?ex=tse"
+            if headers:
+                h.update(headers)
+            req = urllib.request.Request(url, data=body_out, headers=h, method="POST" if body_out is not None else "GET")
+            with _OPENER.open(req, timeout=timeout) as r:
                 body = r.read()
             _last_host_hit[host] = time.time()
             if not body:
@@ -101,8 +112,12 @@ def fetch(key: str, url: str, *, tries: int = 3, timeout: int = 40) -> bytes:
     raise RuntimeError(f"{type(last_err).__name__}: {last_err}")
 
 
-def fetch_json(key: str, url: str):
-    raw = fetch(key, url)
+def fetch_text(key: str, url: str, **kw) -> str:
+    return fetch(key, url, **kw).decode("utf-8-sig", errors="replace")
+
+
+def fetch_json(key: str, url: str, **kw):
+    raw = fetch(key, url, **kw)
     text = raw.decode("utf-8-sig", errors="replace").strip()
     try:
         return json.loads(text)
@@ -313,6 +328,256 @@ def src_tpex_pre(codes):
     return out, None
 
 
+# ---------------------------------------------------------------- 成份股（各投信每日申購買回清單）
+# 每筆持股統一成 [種類, 代號, 名稱, 數量, 權重%]；種類 s=股票（數量為股數）、f=期貨（口數）、
+# b=債券（面額）、e=ETF（單位數）。
+
+ISSUER_NAMES = {"yuanta": "元大投信", "cathay": "國泰投信", "capital": "群益投信",
+                "fubon": "富邦投信", "uni": "統一投信", "kgi": "凱基投信"}
+
+
+class _TableParser(HTMLParser):
+    """把 HTML 裡的每個 <table> 轉成「列 → 儲存格文字」的清單。"""
+
+    def __init__(self):
+        super().__init__(convert_charrefs=True)
+        self.tables: list[list[list[str]]] = []
+        self._stack: list[list[list[str]]] = []
+        self._row: list[str] | None = None
+        self._cell: list[str] | None = None
+
+    def handle_starttag(self, tag, attrs):
+        if tag == "table":
+            t: list[list[str]] = []
+            self.tables.append(t)
+            self._stack.append(t)
+        elif tag == "tr" and self._stack:
+            self._row = []
+            self._stack[-1].append(self._row)
+        elif tag in ("td", "th") and self._row is not None:
+            self._cell = []
+
+    def handle_endtag(self, tag):
+        if tag in ("td", "th") and self._cell is not None and self._row is not None:
+            self._row.append(re.sub(r"\s+", " ", "".join(self._cell)).strip())
+            self._cell = None
+        elif tag == "tr":
+            self._row = None
+        elif tag == "table" and self._stack:
+            self._stack.pop()
+
+    def handle_data(self, data):
+        if self._cell is not None:
+            self._cell.append(data)
+
+
+def html_tables(html: str):
+    p = _TableParser()
+    p.feed(html)
+    return p.tables
+
+
+def table_rows(tables, *needed: str):
+    """找出表頭含有所有指定欄位的表格，回傳 (欄位索引, 資料列)。找不到回傳 (None, [])。"""
+    for t in tables:
+        for i, row in enumerate(t):
+            if all(n in row for n in needed):
+                return {h: row.index(h) for h in row if h}, t[i + 1:]
+    return None, []
+
+
+def ms_date(s) -> date | None:
+    """支援 '/Date(1791734400000)/'、'2026-10-12T00:00:00'、'2026/10/12' 等格式。"""
+    if s is None:
+        return None
+    s = str(s).strip()
+    m = re.search(r"Date\((\d+)", s)
+    if m:
+        return datetime.fromtimestamp(int(m.group(1)) / 1000, TZ).date()
+    m = re.match(r"(\d{4})[-/](\d{1,2})[-/](\d{1,2})", s)
+    if m:
+        return date(*(int(x) for x in m.groups()))
+    return roc_date(s)
+
+
+def _item(kind, code, name, qty, weight):
+    q, w = num(qty), num(weight)
+    if q is not None and float(q).is_integer():
+        q = int(q)
+    return [kind, str(code or "").strip(), re.sub(r"\s+", " ", str(name or "")).strip().rstrip("*"),
+            q, round(w, 4) if w is not None else None]
+
+
+def pcf_yuanta(code, _id):
+    url = ("https://etfapi.yuantaetfs.com/ectranslation/api/bridge?APIType=ETFAPI&CompanyName=YUANTAFUNDS"
+           f"&DeviceId=null&FuncId=PCF%2FDaily&AppName=ETF&Device=3&Platform=ETF&ticker={code}")
+    j = fetch_json(f"pcf_{code}", url)
+    if "FundWeights" not in j and isinstance(j.get("Data"), dict):
+        j = j["Data"]
+    fw = j.get("FundWeights") or {}
+    items = []
+    for kind, key in (("s", "StockWeights"), ("e", "ETFWeights"), ("b", "BondWeights"), ("f", "FutureWeights")):
+        for x in fw.get(key) or []:
+            name = x.get("name") or x.get("ename")
+            if kind == "f" and x.get("ym"):
+                name = f"{name} {x['ym']}"
+            items.append(_item(kind, x.get("code"), name, x.get("qty"), x.get("weights")))
+    return items, roc_date((j.get("PCF") or {}).get("trandate"))
+
+
+def pcf_cathay(code, fund):
+    base = "https://cwapi.cathaysite.com.tw/api/ETF/"
+    a = fetch_json(f"pcf_{code}_assets", f"{base}GetETFAssets?FundCode={fund}&status=1")
+    d = ms_date((a.get("result") or {}).get("preDate"))
+    if not d:
+        raise ValueError("國泰沒有回傳資料日期")
+    q = f"FundCode={fund}&SearchDate={d.isoformat()}&status=1"
+    items = []
+    for x in fetch_json(f"pcf_{code}_stocks", f"{base}GetETFDetailStockList?{q}").get("result") or []:
+        items.append(_item("s", x.get("stockCode"), x.get("stockName"), x.get("volumn"), x.get("weights")))
+    for x in fetch_json(f"pcf_{code}_futures", f"{base}GetETFDetailFutureList?{q}").get("result") or []:
+        items.append(_item("f", x.get("ftNo"), f"{x.get('ftName', '')} {x.get('ftDate', '')}".strip(),
+                           x.get("volumn"), x.get("ntMkval")))
+    return items, d
+
+
+def pcf_capital(code, fund):
+    try:  # 先開一次網頁取得 cookie，網站有防機器人機制
+        fetch(f"pcf_{code}_warmup", f"https://www.capitalfund.com.tw/etf/product/detail/{fund}/portfolio", tries=1)
+    except Exception:  # noqa: BLE001
+        pass
+    j = fetch_json(f"pcf_{code}", "https://www.capitalfund.com.tw/CFWeb/api/etf/buyback",
+                   data=json.dumps({"fundId": str(fund), "date": None}),
+                   headers={"Content-Type": "application/json", "Referer":
+                            f"https://www.capitalfund.com.tw/etf/product/detail/{fund}/portfolio"})
+    d = j.get("data") or {}
+    items = []
+    for x in d.get("stocks") or []:
+        items.append(_item("s", x.get("stocNo"), x.get("stocName"), x.get("share"), x.get("weight")))
+    for x in d.get("bonds") or []:
+        items.append(_item("b", x.get("bondNo"), x.get("bondName"), x.get("faceValue"), x.get("weight")))
+    for x in d.get("futures") or []:
+        items.append(_item("f", x.get("txEname"), x.get("txDesc"), x.get("lot"), x.get("weight")))
+    pcf = d.get("pcf") or {}
+    return items, ms_date(pcf.get("date2") or pcf.get("date1"))
+
+
+def pcf_fubon(code, _id):
+    html = fetch_text(f"pcf_{code}", f"https://websys.fsit.com.tw/FubonETF/Fund/Assets.aspx?stkId={code}")
+    m = re.search(r"資料日期[：:]\s*(\d{4}/\d{1,2}/\d{1,2})", html)
+    tables = html_tables(html)
+    items = []
+    idx, rows = table_rows(tables, "股票代碼", "股票名稱", "股數", "權重(%)")
+    for r in rows:
+        if idx and len(r) > max(idx.values()) and re.fullmatch(r"[0-9A-Z]{4,6}", r[idx["股票代碼"]]):
+            items.append(_item("s", r[idx["股票代碼"]], r[idx["股票名稱"]], r[idx["股數"]], r[idx["權重(%)"]]))
+    idx, rows = table_rows(tables, "期貨代碼", "期貨名稱", "口數", "權重(%)")
+    for r in rows:
+        if idx and len(r) > max(idx.values()) and r[idx["期貨代碼"]] and "合計" not in r[idx["期貨代碼"]]:
+            items.append(_item("f", r[idx["期貨代碼"]], r[idx["期貨名稱"]], r[idx["口數"]], r[idx["權重(%)"]]))
+    return items, ms_date(m.group(1)) if m else None
+
+
+def pcf_uni(code, fund):
+    today = datetime.now(TZ).date()
+    roc = f"{today.year - 1911}/{today.month:02d}/{today.day:02d}"
+    try:
+        fetch(f"pcf_{code}_warmup", f"https://www.ezmoney.com.tw/ETF/Transaction/PCF?fundCode={fund}", tries=1)
+    except Exception:  # noqa: BLE001
+        pass
+    j = fetch_json(f"pcf_{code}", "https://www.ezmoney.com.tw/ETF/Transaction/GetPCF",
+                   data=json.dumps({"fundCode": fund, "date": roc, "specificDate": False}),
+                   headers={"Content-Type": "application/json; charset=utf-8", "X-Requested-With": "XMLHttpRequest",
+                            "Referer": f"https://www.ezmoney.com.tw/ETF/Transaction/PCF?fundCode={fund}"})
+    kinds = {"ST": "s", "GD": "f", "BD": "b", "EF": "e", "ETF": "e"}
+    items, d = [], None
+    for a in j.get("asset") or []:
+        kind = kinds.get(str(a.get("AssetCode", "")).strip())
+        if not kind:
+            continue
+        for x in a.get("Details") or []:
+            name = x.get("DetailName")
+            if kind == "f" and x.get("MTH"):
+                name = f"{name} {x['MTH']}"
+            items.append(_item(kind, x.get("DetailCode"), name, x.get("Share"), x.get("NavRate")))
+            d = d or ms_date(x.get("TranDate"))
+    return items, d
+
+
+def pcf_kgi(code, fund):
+    try:
+        fetch(f"pcf_{code}_warmup", "https://www.kgifund.com.tw/Fund/RedemptionList", tries=1)
+    except Exception:  # noqa: BLE001
+        pass
+    html = fetch_text(f"pcf_{code}", "https://www.kgifund.com.tw/Fund/RedemptionVC", data=f"fundID={fund}",
+                      headers={"Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+                               "X-Requested-With": "XMLHttpRequest",
+                               "Referer": "https://www.kgifund.com.tw/Fund/RedemptionList"})
+    tables = html_tables(html)
+    items = []
+    idx, rows = table_rows(tables, "股票代號", "股票名稱", "股數", "權重(%)")
+    for r in rows:
+        if idx and len(r) > max(idx.values()) and re.fullmatch(r"[0-9A-Z]{4,6}", r[idx["股票代號"]]):
+            items.append(_item("s", r[idx["股票代號"]], r[idx["股票名稱"]], r[idx["股數"]], r[idx["權重(%)"]]))
+    idx, rows = table_rows(tables, "期貨代號", "期貨名稱", "口數", "權重(%)")
+    for r in rows:
+        if idx and len(r) > max(idx.values()) and r[idx["期貨代號"]] and "合計" not in r[idx["期貨代號"]]:
+            name = r[idx["期貨名稱"]]
+            if "契約年月" in idx and r[idx["契約年月"]]:
+                name = f"{name} {r[idx['契約年月']]}"
+            items.append(_item("f", r[idx["期貨代號"]], name, r[idx["口數"]], r[idx["權重(%)"]]))
+    plain = re.sub(r"<[^>]+>", " ", html)
+    m = re.search(r"\((\d{4}/\d{1,2}/\d{1,2})\)\s*每受益權單位淨資產價值", plain) or \
+        re.search(r'id="DataDate"[^>]*value="(\d{4}/\d{1,2}/\d{1,2})"', html)
+    return items, ms_date(m.group(1)) if m else None
+
+
+PCF_FETCHERS = {"yuanta": pcf_yuanta, "cathay": pcf_cathay, "capital": pcf_capital,
+                "fubon": pcf_fubon, "uni": pcf_uni, "kgi": pcf_kgi}
+
+
+def update_holdings(etf_cfg, now) -> tuple[dict, list[str]]:
+    prev = load_json(HOLDINGS, {})
+    prev_etfs = prev.get("etfs", {})
+    sources, etfs, warnings = {}, {}, []
+    for c in etf_cfg:
+        code, pcf = c["code"], c.get("pcf") or {}
+        issuer = pcf.get("issuer")
+        fn = PCF_FETCHERS.get(issuer)
+        if not fn:
+            continue
+        src = sources.setdefault(issuer, {"name": f"{ISSUER_NAMES.get(issuer, issuer)} 申購買回清單（成份股）",
+                                          "ok": True, "codes": [], "as_of": None,
+                                          "fetched_at": now.isoformat(timespec="seconds")})
+        src["codes"].append(code)
+        try:
+            items, d = fn(code, pcf.get("id"))
+            items = [x for x in items if x[1] and x[4] is not None]
+            if not items:
+                raise ValueError("沒有解析到任何持股")
+            items.sort(key=lambda x: -(x[4] or 0))
+            stock_w = sum(x[4] for x in items if x[0] == "s")
+            if c.get("type") in ("市值型", "高股息", "主動式") and not 80 <= stock_w <= 105:
+                warnings.append(f"{code}：股票權重合計 {stock_w:.1f}% 不合理，請人工確認")
+            etfs[code] = {"issuer": ISSUER_NAMES.get(issuer, issuer), "date": iso(d), "stale": False,
+                          "items": items}
+            src["as_of"] = max(filter(None, [src["as_of"], iso(d)]), default=None)
+            print(f"[OK]   成份股 {code}: {len(items)} 筆，{iso(d)}")
+        except Exception as e:  # noqa: BLE001
+            src["ok"] = False
+            src["error"] = f"{code}: {str(e)[:250]}"
+            if code in prev_etfs:
+                etfs[code] = dict(prev_etfs[code], stale=True)
+            print(f"[FAIL] 成份股 {code}: {e}", file=sys.stderr)
+    out = {"schema": 1, "generated_at": now.isoformat(timespec="seconds"),
+           "fields": ["種類", "代號", "名稱", "數量", "權重%"], "sources": sources,
+           "warnings": warnings, "etfs": etfs}
+    HOLDINGS.parent.mkdir(parents=True, exist_ok=True)
+    HOLDINGS.write_text(json.dumps(out, ensure_ascii=False, separators=(",", ":")) + "\n", encoding="utf-8")
+    failed = [k for k, s in sources.items() if not s["ok"]]
+    return out, failed
+
+
 # ---------------------------------------------------------------- 主流程
 
 def load_json(path: Path, default):
@@ -456,10 +721,12 @@ def main() -> int:
     append_history(etfs)
 
     failed = [k for k, s in sources.items() if not s["ok"]]
-    for w in warnings:
+    hold, hold_failed = update_holdings(etf_cfg, now)
+    for w in warnings + hold["warnings"]:
         print(f"[WARN] {w}", file=sys.stderr)
-    print(f"完成：{len(etfs)} 檔，失敗來源 {failed or '無'}，警告 {len(warnings)} 則")
-    return 2 if failed else 0
+    print(f"完成：{len(etfs)} 檔，失敗來源 {failed or '無'}，成份股失敗 {hold_failed or '無'}，"
+          f"警告 {len(warnings) + len(hold['warnings'])} 則")
+    return 2 if failed or hold_failed else 0
 
 
 def append_history(etfs):
