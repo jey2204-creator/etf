@@ -477,9 +477,16 @@ def pcf_cathay(code, fund):
 
 def pcf_capital(code, fund):
     try:  # 先開一次網頁取得 cookie，網站有防機器人機制
-        fetch(f"pcf_{code}_warmup", f"https://www.capitalfund.com.tw/etf/product/detail/{fund}/portfolio", tries=1)
+        fetch(f"pcf_{code}_warmup", f"https://www.capitalfund.com.tw/etf/product/detail/{fund or 195}/portfolio", tries=1)
     except Exception:  # noqa: BLE001
         pass
+    if not fund:  # 沒填基金代碼就從群益的 ETF 清單查（代號 → fundNo）
+        lst = fetch_json(f"pcf_{code}_list", "https://www.capitalfund.com.tw/CFWeb/api/etf/list", data="{}",
+                         headers={"Content-Type": "application/json"})
+        fund = next((f.get("fundNo") for f in ((lst.get("data") or {}).get("funds") or [])
+                     if str(f.get("stockNo", "")).strip() == code), None)
+        if not fund:
+            raise ValueError(f"群益 ETF 清單找不到 {code}")
     j = fetch_json(f"pcf_{code}", "https://www.capitalfund.com.tw/CFWeb/api/etf/buyback",
                    data=json.dumps({"fundId": str(fund), "date": None}),
                    headers={"Content-Type": "application/json", "Referer":
@@ -503,7 +510,8 @@ def pcf_fubon(code, _id):
     items = []
     idx, rows = table_rows(tables, "股票代碼", "股票名稱", "股數", "權重(%)")
     for r in rows:
-        if idx and len(r) > max(idx.values()) and re.fullmatch(r"[0-9A-Z]{4,6}", r[idx["股票代碼"]]):
+        # 國內股票是 4–6 碼；海外股票像「VIC VN」「AAPL US」，代號後面帶市場別
+        if idx and len(r) > max(idx.values()) and re.fullmatch(r"[0-9A-Z][0-9A-Z.\-/]{0,11}( [A-Z]{2})?", r[idx["股票代碼"]]):
             items.append(_item("s", r[idx["股票代碼"]], r[idx["股票名稱"]], r[idx["股數"]], r[idx["權重(%)"]]))
     idx, rows = table_rows(tables, "期貨代碼", "期貨名稱", "口數", "權重(%)")
     for r in rows:
