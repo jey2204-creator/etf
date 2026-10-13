@@ -1,5 +1,5 @@
 {
-  "_說明": "手動維護的欄位。費率為年費率（%），級距為「規模上限（億元）, 費率」，最後一級上限填 null；級距採超額分段計算。費率變動時請更新 checked 日期與 source。pcf 為成份股來源：issuer 投信代號，id 為該投信網站的基金代碼；client 為 true 表示該投信網站會擋 GitHub 的海外主機，改由網頁開啟時從使用者裝置直接讀取（目前支援 cathay）。支援的投信：yuanta、cathay、capital、fubon、uni、kgi、fhtrust、ctbc（中信）、blackrock（貝萊德，id 為官網產品編號）、tsit（台新）、uobam（大華銀，id 為基金代碼）。",
+  "_說明": "手動維護的欄位。費率為年費率（%），級距為「規模上限（億元）, 費率」，最後一級上限填 null；級距採超額分段計算。費率變動時請更新 checked 日期與 source。pcf 為成份股來源：issuer 投信代號，id 為該投信網站的基金代碼；client 為 true 表示該投信網站會擋 GitHub 的海外主機，改由網頁開啟時從使用者裝置直接讀取（目前支援 cathay、ctbc）。支援的投信：yuanta、cathay、capital、fubon、uni、kgi、fhtrust、ctbc（中信）、blackrock（貝萊德，id 為官網產品編號）、tsit（台新）、uobam（大華銀，id 為基金代碼）。",
   "etfs": [
     {
       "code": "0050",
@@ -476,7 +476,8 @@
       },
       "added": "2026-10-13",
       "pcf": {
-        "issuer": "ctbc"
+        "issuer": "ctbc",
+        "client": true
       }
     },
     {
