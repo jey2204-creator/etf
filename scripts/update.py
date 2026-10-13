@@ -737,6 +737,14 @@ def main() -> int:
             warnings.append(f"{code}：沒有市價")
         etfs.append(rec)
 
+    try:
+        flows = update_weekly(etfs)
+        for rec in etfs:
+            if rec["code"] in flows:
+                rec["flow"] = flows[rec["code"]]
+    except Exception as e:  # noqa: BLE001
+        warnings.append(f"資金流向計算失敗：{e}")
+
     out = {
         "schema": 1,
         "generated_at": now.isoformat(timespec="seconds"),
@@ -755,6 +763,99 @@ def main() -> int:
     print(f"完成：{len(etfs)} 檔，失敗來源 {failed or '無'}，成份股失敗 {hold_failed or '無'}，"
           f"警告 {len(warnings) + len(hold['warnings'])} 則")
     return 2 if failed or hold_failed else 0
+
+
+WEEKLY = ROOT / "data" / "weekly.csv"
+
+
+def fill_weekly_nav(rows):
+    """補上週資料缺的淨值：向證交所 ETF e添富 查每日淨值（只有上市 ETF），取當天或之前最近一天。"""
+    missing: dict[str, list] = {}
+    for (d, code), r in rows.items():
+        if not r.get("nav"):
+            missing.setdefault(code, []).append(d)
+    for code, dates in missing.items():
+        try:
+            start = date.fromisoformat(min(dates)) - timedelta(days=10)
+            end = date.fromisoformat(max(dates))
+            j = fetch_json(f"enav_{code}", "https://www.twse.com.tw/zh/ETFortune/ajaxEtfInfoChart",
+                           data=f"id={code}&startDate={start:%Y/%m/%d}&endDate={end:%Y/%m/%d}&type=fundPric",
+                           headers={"Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+                                    "X-Requested-With": "XMLHttpRequest",
+                                    "Referer": f"https://www.twse.com.tw/zh/ETFortune/etfInfo/{code}"}, tries=2)
+            ser = sorted((iso(ms_date(x.get("date"))), x.get("count")) for x in j.get("netPrice") or []
+                         if x.get("count") is not None)
+            for d in dates:
+                prior = [v for k, v in ser if k and k <= d]
+                if prior:
+                    rows[(d, code)]["nav"] = prior[-1]
+        except Exception as e:  # noqa: BLE001
+            print(f"[INFO] {code} 週淨值補值失敗：{str(e)[:120]}")
+
+
+def update_weekly(etfs):
+    """集保每週資料：受益人數、單位數、當週淨值。回傳 {代號: 資金流向摘要}。
+
+    淨申購金額 ≈（本週單位數 − 上週單位數）× 本週淨值。單位數一週變動超過 1.8 倍視為分割，該週不計。"""
+    cols = ["date", "code", "holders", "units", "nav"]
+    rows = {}
+    if WEEKLY.exists():
+        with WEEKLY.open(encoding="utf-8") as fh:
+            for r in csv.DictReader(fh):
+                rows[(r["date"], r["code"])] = r
+    navs = {}  # 從每日紀錄找當天淨值
+    if HISTORY.exists():
+        with HISTORY.open(encoding="utf-8") as fh:
+            for r in csv.DictReader(fh):
+                if r.get("nav"):
+                    navs[(r["date"], r["code"])] = r["nav"]
+    fill_weekly_nav(rows)
+    for e in etfs:
+        d, code = e.get("holders_date"), e["code"]
+        if not d or not e.get("holders") or not e.get("holders_units"):
+            continue
+        old = rows.get((d, code), {})
+        nav = old.get("nav") or navs.get((d, code)) or e.get("nav") or ""
+        rows[(d, code)] = {"date": d, "code": code, "holders": int(e["holders"]),
+                           "units": int(e["holders_units"]), "nav": nav}
+    WEEKLY.parent.mkdir(parents=True, exist_ok=True)
+    with WEEKLY.open("w", encoding="utf-8", newline="") as fh:
+        w = csv.DictWriter(fh, fieldnames=cols)
+        w.writeheader()
+        for key in sorted(rows):
+            w.writerow({k: rows[key].get(k, "") for k in cols})
+
+    by_code: dict[str, list] = {}
+    for (d, code), r in sorted(rows.items()):
+        by_code.setdefault(code, []).append(r)
+    out = {}
+    for e in etfs:
+        code = e["code"]
+        ser = by_code.get(code, [])
+        if len(ser) < 2:
+            continue
+        last_nav = e.get("nav")
+        weeks = []  # [日期, 受益人增減, 淨申購(億)]
+        for a, b in zip(ser, ser[1:]):
+            ua, ub = float(a["units"]), float(b["units"])
+            nav = float(b["nav"]) if b.get("nav") else (float(a["nav"]) if a.get("nav") else last_nav)
+            split = ua > 0 and not (1 / 1.8 < ub / ua < 1.8)
+            flow = None if split or not nav else round((ub - ua) * nav / 1e8, 2)
+            weeks.append([b["date"], int(b["holders"]) - int(a["holders"]), flow])
+
+        def tot(n, i):
+            xs = [w[i] for w in weeks[-n:]]
+            return None if len(weeks) < n or any(x is None for x in xs) else round(sum(xs), 2)
+
+        h0 = int(ser[-1]["holders"])
+        out[code] = {
+            "date": ser[-1]["date"],
+            "holders_w1": tot(1, 1), "holders_w4": tot(4, 1), "holders_w13": tot(13, 1),
+            "holders_w4_pct": round(tot(4, 1) / (h0 - tot(4, 1)) * 100, 2) if tot(4, 1) is not None and h0 - tot(4, 1) else None,
+            "flow_w1": tot(1, 2), "flow_w4": tot(4, 2), "flow_w13": tot(13, 2),
+            "weeks": weeks[-13:],
+        }
+    return out
 
 
 def append_history(etfs):
