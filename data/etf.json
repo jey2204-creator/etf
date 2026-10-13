@@ -1,59 +1,57 @@
 {
  "schema": 1,
- "generated_at": "2026-10-13T16:16:23+08:00",
+ "generated_at": "2026-10-13T19:03:16+08:00",
  "sources": {
   "mis": {
    "name": "證交所 MIS（市價、淨值、單位數）",
    "ok": true,
    "as_of": "2026-10-13",
-   "fetched_at": "2026-10-13T16:16:23+08:00"
+   "fetched_at": "2026-10-13T19:03:16+08:00"
   },
   "twse_quotes": {
    "name": "證交所 每日收盤行情（上市成交量）",
    "ok": true,
    "as_of": "2026-10-13",
-   "fetched_at": "2026-10-13T16:16:23+08:00"
+   "fetched_at": "2026-10-13T19:03:16+08:00"
   },
   "tpex_quotes": {
    "name": "櫃買中心 上櫃行情（上櫃成交量）",
    "ok": true,
    "as_of": "2026-10-13",
-   "fetched_at": "2026-10-13T16:16:23+08:00"
+   "fetched_at": "2026-10-13T19:03:16+08:00"
   },
   "tdcc": {
    "name": "集保 股權分散表（受益人數）",
    "ok": true,
    "as_of": "2026-10-08",
-   "fetched_at": "2026-10-13T16:16:23+08:00"
+   "fetched_at": "2026-10-13T19:03:16+08:00"
   },
   "twse_div": {
    "name": "證交所 除權息結果（配息）",
    "ok": true,
    "as_of": "2026-10-13",
-   "fetched_at": "2026-10-13T16:16:23+08:00"
+   "fetched_at": "2026-10-13T19:03:16+08:00"
   },
   "tpex_div": {
    "name": "櫃買 除權息結果（配息）",
    "ok": true,
    "as_of": "2026-10-13",
-   "fetched_at": "2026-10-13T16:16:23+08:00"
+   "fetched_at": "2026-10-13T19:03:16+08:00"
   },
   "twse_pre": {
    "name": "證交所 除權息預告",
    "ok": true,
    "as_of": null,
-   "fetched_at": "2026-10-13T16:16:23+08:00"
+   "fetched_at": "2026-10-13T19:03:16+08:00"
   },
   "tpex_pre": {
    "name": "櫃買 除權息預告",
    "ok": true,
    "as_of": null,
-   "fetched_at": "2026-10-13T16:16:23+08:00"
+   "fetched_at": "2026-10-13T19:03:16+08:00"
   }
  },
- "warnings": [
-  "00981A：MIS 沒有這檔的資料"
- ],
+ "warnings": [],
  "etfs": [
   {
    "code": "0050",
@@ -185,21 +183,21 @@
    "nav": 58.5,
    "prem_src": 0.09,
    "prev_nav": 58.4,
-   "units": 14297534000.0,
-   "units_chg": 13500000.0,
+   "units": 14347534000.0,
+   "units_chg": 50000000.0,
    "quote_date": "2026-10-13",
    "quote_time": "13:31:00",
    "prem": 0.085,
-   "aum": 8364.06,
+   "aum": 8393.31,
    "volume": 62429,
    "volume_date": "2026-10-13",
    "holders": 1683664,
    "holders_units": 14247034000.0,
    "holders_date": "2026-10-08",
    "fee": {
-    "mgmt": 0.3022,
+    "mgmt": 0.3021,
     "custody": 0.035,
-    "total": 0.3372,
+    "total": 0.3371,
     "tiered": true,
     "note": "經理費：100億以下 0.40%、100–300億 0.34%、300億以上 0.30%；保管費 0.035%",
     "source": "https://www.yuantaetfs.com/product/detail/0056/",
@@ -311,7 +309,7 @@
    "units": 18879790000.0,
    "units_chg": 9500000.0,
    "quote_date": "2026-10-13",
-   "quote_time": "16:15:34",
+   "quote_time": "16:59:50",
    "prem": 0.142,
    "aum": 6662.68,
    "volume": 34149,
@@ -551,7 +549,7 @@
    "units": 1860540000.0,
    "units_chg": 0.0,
    "quote_date": "2026-10-13",
-   "quote_time": "16:15:57",
+   "quote_time": "17:05:00",
    "prem": 0.448,
    "aum": 4776.01,
    "volume": 7270,
@@ -671,7 +669,7 @@
    "units": 9025209000.0,
    "units_chg": 0.0,
    "quote_date": "2026-10-13",
-   "quote_time": "16:03:12",
+   "quote_time": "16:59:58",
    "prem": 0.097,
    "aum": 2800.52,
    "volume": 234385,
@@ -908,7 +906,7 @@
    "units": 17398805000.0,
    "units_chg": 0.0,
    "quote_date": "2026-10-13",
-   "quote_time": "16:15:45",
+   "quote_time": "17:00:00",
    "prem": 0.347,
    "aum": 2404.88,
    "volume": 68212,
@@ -1031,7 +1029,7 @@
    "units": 12425844000.0,
    "units_chg": 98000000.0,
    "quote_date": "2026-10-13",
-   "quote_time": "16:15:56",
+   "quote_time": "17:00:02",
    "prem": 0.363,
    "aum": 2056.48,
    "volume": 245143,
@@ -1148,7 +1146,7 @@
    "units": 2543000000.0,
    "units_chg": 0.0,
    "quote_date": "2026-10-13",
-   "quote_time": "16:15:57",
+   "quote_time": "17:05:00",
    "prem": 0.476,
    "aum": 1655.24,
    "volume": 34441,
@@ -1265,12 +1263,12 @@
    "nav": 29.78,
    "prem_src": 0.27,
    "prev_nav": 30.03,
-   "units": 5343639000.0,
-   "units_chg": 20500000.0,
+   "units": 5410139000.0,
+   "units_chg": 66500000.0,
    "quote_date": "2026-10-13",
-   "quote_time": "16:15:33",
+   "quote_time": "16:59:56",
    "prem": 0.269,
-   "aum": 1591.34,
+   "aum": 1611.14,
    "volume": 84425,
    "volume_date": "2026-10-13",
    "holders": 461159,
