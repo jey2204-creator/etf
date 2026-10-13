@@ -679,6 +679,25 @@
         "issuer": "uobam",
         "id": "00719554"
       }
+    },
+    {
+      "code": "00772B",
+      "name": "中信高評級公司債",
+      "type": "債券",
+      "market": "TPEX",
+      "div_per_year": 12,
+      "div_note": "月配",
+      "fee": {
+        "mgmt": [],
+        "custody": [],
+        "note": "費率待查（由網頁新增，請 Claude 補上）",
+        "source": null,
+        "checked": null
+      },
+      "added": "2026-10-13",
+      "pcf": {
+        "issuer": "ctbc"
+      }
     }
   ]
 }
