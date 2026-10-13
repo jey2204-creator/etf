@@ -404,6 +404,143 @@
         "checked": null
       },
       "added": "2026-10-13"
+    },
+    {
+      "code": "00893",
+      "name": "國泰智能電動車",
+      "type": "海外",
+      "market": "TWSE",
+      "div_per_year": 0,
+      "div_note": "不配息",
+      "fee": {
+        "mgmt": [],
+        "custody": [],
+        "note": "費率待查（由網頁新增，請 Claude 補上）",
+        "source": null,
+        "checked": null
+      },
+      "added": "2026-10-13"
+    },
+    {
+      "code": "009828",
+      "name": "中信台日韓PCB",
+      "type": "海外",
+      "market": "TWSE",
+      "div_per_year": 0,
+      "div_note": "不配息",
+      "fee": {
+        "mgmt": [],
+        "custody": [],
+        "note": "費率待查（由網頁新增，請 Claude 補上）",
+        "source": null,
+        "checked": null
+      },
+      "added": "2026-10-13"
+    },
+    {
+      "code": "00885",
+      "name": "富邦越南",
+      "type": "海外",
+      "market": "TWSE",
+      "div_per_year": 0,
+      "div_note": "不配息",
+      "fee": {
+        "mgmt": [],
+        "custody": [],
+        "note": "費率待查（由網頁新增，請 Claude 補上）",
+        "source": null,
+        "checked": null
+      },
+      "added": "2026-10-13",
+      "pcf": {
+        "issuer": "fubon"
+      }
+    },
+    {
+      "code": "009805",
+      "name": "台新美國電力基建息收",
+      "type": "海外",
+      "market": "TWSE",
+      "div_per_year": 1,
+      "div_note": "年配",
+      "fee": {
+        "mgmt": [],
+        "custody": [],
+        "note": "費率待查（由網頁新增，請 Claude 補上）",
+        "source": null,
+        "checked": null
+      },
+      "added": "2026-10-13"
+    },
+    {
+      "code": "00876",
+      "name": "元大全球5G",
+      "type": "海外",
+      "market": "TWSE",
+      "div_per_year": 0,
+      "div_note": "不配息",
+      "fee": {
+        "mgmt": [],
+        "custody": [],
+        "note": "費率待查（由網頁新增，請 Claude 補上）",
+        "source": null,
+        "checked": null
+      },
+      "added": "2026-10-13",
+      "pcf": {
+        "issuer": "yuanta"
+      }
+    },
+    {
+      "code": "009826",
+      "name": "貝萊德世界股票",
+      "type": "海外",
+      "market": "TWSE",
+      "div_per_year": 0,
+      "div_note": "不配息",
+      "fee": {
+        "mgmt": [],
+        "custody": [],
+        "note": "費率待查（由網頁新增，請 Claude 補上）",
+        "source": null,
+        "checked": null
+      },
+      "added": "2026-10-13"
+    },
+    {
+      "code": "00762",
+      "name": "元大全球AI",
+      "type": "海外",
+      "market": "TWSE",
+      "div_per_year": 0,
+      "div_note": "不配息",
+      "fee": {
+        "mgmt": [],
+        "custody": [],
+        "note": "費率待查（由網頁新增，請 Claude 補上）",
+        "source": null,
+        "checked": null
+      },
+      "added": "2026-10-13",
+      "pcf": {
+        "issuer": "yuanta"
+      }
+    },
+    {
+      "code": "009829",
+      "name": "大華韓國KOSPI 50",
+      "type": "海外",
+      "market": "TWSE",
+      "div_per_year": 0,
+      "div_note": "不配息",
+      "fee": {
+        "mgmt": [],
+        "custody": [],
+        "note": "費率待查（由網頁新增，請 Claude 補上）",
+        "source": null,
+        "checked": null
+      },
+      "added": "2026-10-13"
     }
   ]
 }
