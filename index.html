@@ -228,10 +228,56 @@ const loadHoldings=()=>loadNewest("holdings.json",d=>d.etfs&&typeof d.etfs==="ob
 function setHoldings(h){
   HDATA=h;HOLD={};
   Object.entries(h.etfs||{}).forEach(([code,e])=>{
-    HOLD[code]={date:e.date,issuer:e.issuer,stale:!!e.stale,items:(e.items||[]).map(([k,c,n,q,w])=>({k,c,n,q,w}))};
+    const items=(e.items||[]).map(([k,c,n,q,w])=>({k,c,n,q,w}));
+    const pending=!!(e.client&&CLIENT_PCF[e.client.issuer]&&(e.stale||!items.length));
+    HOLD[code]={date:e.date,issuer:e.issuer,stale:!!e.stale,items,pending};
   });
 }
 const stocksOf=code=>(HOLD[code]?HOLD[code].items.filter(x=>x.k==="s"):[]);
+
+// ===== 網頁端直接向投信讀取 =====
+// 國泰的網站會擋 GitHub 的美國主機，但允許其他網站跨網域讀取，所以由使用者的裝置在開啟網頁時直接抓。
+const toNum=v=>{if(v==null||v==="")return null;const n=parseFloat(String(v).replace(/,/g,""));return isFinite(n)?n:null};
+const isoDate=s=>{const m=String(s||"").match(/(\d{4})[\/-](\d{1,2})[\/-](\d{1,2})/);return m?`${m[1]}-${m[2].padStart(2,"0")}-${m[3].padStart(2,"0")}`:null};
+const mkItem=(k,c,n,q,w)=>({k,c:String(c??"").trim().replace(/\*+$/,""),n:String(n??"").trim().replace(/\*+$/,""),q:toNum(q),w:toNum(w)});
+const withTimeout=(p,ms)=>Promise.race([p,new Promise((_,rej)=>setTimeout(()=>rej(new Error("連線逾時")),ms))]);
+const CLIENT_PCF={
+  async cathay(id){
+    const base="https://cwapi.cathaysite.com.tw/api/ETF/", fund=encodeURIComponent(id);
+    const get=async u=>{const r=await fetch(base+u,{cache:"no-store"});if(!r.ok)throw new Error("HTTP "+r.status);return r.json()};
+    const a=await get(`GetETFAssets?FundCode=${fund}&status=1`);
+    const date=isoDate(a.result&&a.result.preDate);
+    if(!date)throw new Error("國泰沒有回傳資料日期");
+    const q=`FundCode=${fund}&SearchDate=${date}&status=1`;
+    const [s,fu]=await Promise.all([get("GetETFDetailStockList?"+q),get("GetETFDetailFutureList?"+q)]);
+    return {date,items:[...(s.result||[]).map(x=>mkItem("s",x.stockCode,x.stockName,x.volumn,x.weights)),
+      ...(fu.result||[]).map(x=>mkItem("f",x.ftNo,`${x.ftName||""} ${x.ftDate||""}`.trim(),x.volumn,x.ntMkval))]};
+  }
+};
+async function fillClientHoldings(){
+  const jobs=Object.entries((HDATA&&HDATA.etfs)||{}).filter(([c])=>HOLD[c]&&HOLD[c].pending);
+  if(!jobs.length)return false;
+  try{
+    await Promise.all(jobs.map(async([code,e])=>{
+      try{
+        const r=await withTimeout(CLIENT_PCF[e.client.issuer](e.client.id),15000);
+        const items=r.items.filter(x=>x.c&&isNum(x.w)).sort((a,b)=>b.w-a.w);
+        if(!items.length)throw new Error("沒有持股資料");
+        HOLD[code]={date:r.date,issuer:e.issuer,stale:false,live:true,items};
+      }catch(err){HOLD[code].liveError=String((err&&err.message)||err)}
+    }));
+  }finally{
+    Object.values(HOLD).forEach(h=>{h.pending=false});
+    Object.values(HDATA.sources||{}).filter(s=>s.client).forEach(s=>{
+      s.liveDone=true;
+      const hs=(s.codes||[]).map(c=>HOLD[c]).filter(Boolean);
+      if(hs.length&&hs.every(h=>h.items.length&&!h.stale)){
+        s.ok=true;s.live=hs.some(h=>h.live);s.as_of=hs.map(h=>h.date).filter(Boolean).sort().pop()||s.as_of;
+      }
+    });
+  }
+  return true;
+}
 
 // ===== 分頁 =====
 function showTab(t){
@@ -246,18 +292,22 @@ document.querySelectorAll("nav.tabs button").forEach(b=>b.onclick=()=>showTab(b.
 function renderStatus(){
   const s=DATA.sources||{}, hs=(HDATA&&HDATA.sources)||{};
   const all=[...Object.values(s),...Object.values(hs)];
-  const failed=all.filter(x=>!x.ok);
+  const waiting=x=>x.client&&!x.ok&&!x.liveDone;  // 等網頁端直接讀取
+  const failed=all.filter(x=>!x.ok&&!waiting(x));
   const ageH=(Date.now()-new Date(DATA.generated_at))/36e5;
   const hDates=Object.values(HOLD).map(h=>h.date).filter(Boolean).sort();
   let html=`行情 <b>${md(s.mis&&s.mis.as_of)}</b> 收盤 · 受益人數 <b>${md(s.tdcc&&s.tdcc.as_of)}</b>（集保每週）`
     +(hDates.length?` · 成份股 <b>${md(hDates[hDates.length-1])}</b>`:"")+` · 更新 <b>${fmtTime(DATA.generated_at)}</b>`;
-  if(failed.length)html+=`<div class="warnline"><b>⚠️ 部分來源這次沒抓到</b>：${failed.map(x=>`${esc(x.name)}（沿用 ${md(x.as_of)}）`).join("、")}</div>`;
+  if(failed.length)html+=`<div class="warnline"><b>⚠️ 部分來源這次沒抓到</b>：${failed.map(x=>x.client?`${esc(x.name)}（這台裝置也連不上，請稍後重新整理）`:`${esc(x.name)}（沿用 ${md(x.as_of)}）`).join("、")}</div>`;
   if(ageH>72)html+=`<div class="warnline"><b>⚠️ 資料超過 3 天沒更新</b>，請到 GitHub Actions 查看排程是否停止。</div>`;
   const warns=[...(DATA.warnings||[]),...((HDATA&&HDATA.warnings)||[])];
   if(warns.length)html+=`<div class="warnline"><b>⚠️ 檢查提醒</b>：${warns.map(esc).join("；")}</div>`;
   $("status").innerHTML=html;
   $("genAt").textContent="更新 "+fmtTime(DATA.generated_at);
-  $("sources").innerHTML=all.map(x=>`<div>${esc(x.name)}</div><div class="num ${x.ok?"ok":"ng"}">${x.ok?"✓":"✗"} ${x.as_of?md(x.as_of):""}</div>`).join("");
+  $("sources").innerHTML=all.map(x=>{
+    const [cls,txt]=waiting(x)?["","讀取中…"]:x.ok?["ok",`✓ ${x.as_of?md(x.as_of):""}${x.live?" 裝置直連":""}`]:["ng",`✗ ${x.as_of?md(x.as_of):""}`];
+    return `<div>${esc(x.name)}</div><div class="num ${cls}">${txt}</div>`;
+  }).join("");
 }
 
 // ===== 總覽 =====
@@ -304,9 +354,9 @@ function renderList(){
 }
 
 // ===== 底部面板 =====
-let lastFocus=null;
+let lastFocus=null, sheetCode=null;
 function openSheet(code){
-  const e=byCode[code];if(!e)return;lastFocus=document.activeElement;
+  const e=byCode[code];if(!e)return;lastFocus=document.activeElement;sheetCode=code;
   const d=e.div||{},fee=e.fee||{};
   const divRows=d.per_year===0?`<dt>收益分配</dt><dd>不配息</dd>`:`
       <dt>配息頻率</dt><dd>${esc(d.freq||"—")}</dd>
@@ -363,7 +413,10 @@ function qtyText(x){
 }
 function holdingsHTML(code,showAll){
   const H=HOLD[code];
-  if(!H||!H.items.length)return `<section id="holdSec"><b>成份股</b><p class="hint" style="margin:0">${HDATA?"目前取不到這檔的成份股資料。":"成份股資料載入中…"}</p></section>`;
+  if(!H||!H.items.length){
+    const msg=!HDATA||(H&&H.pending)?"成份股資料讀取中…":H&&H.liveError?`暫時讀不到${esc(H.issuer)}的申購買回清單（${esc(H.liveError)}），請稍後重新整理。`:"目前取不到這檔的成份股資料。";
+    return `<section id="holdSec"><b>成份股</b><p class="hint" style="margin:0">${msg}</p></section>`;
+  }
   const items=H.items, byK={};
   items.forEach(x=>{const g=(byK[x.k]=byK[x.k]||{n:0,w:0});g.n++;g.w+=x.w||0});
   const st=items.filter(x=>x.k==="s");
@@ -372,7 +425,7 @@ function holdingsHTML(code,showAll){
   const list=showAll?items:items.slice(0,10);
   const max=Math.max(1,...list.map(x=>Math.min(Math.abs(x.w||0),100)));
   return `<section id="holdSec">
-    <div class="bar-row"><b>成份股${H.stale?'<span class="badge">沿用前次資料</span>':""}</b><span class="sub">${esc(H.issuer)} · ${ymd(H.date)}</span></div>
+    <div class="bar-row"><b>成份股${H.stale?'<span class="badge">沿用前次資料</span>':""}</b><span class="sub">${esc(H.issuer)} · ${ymd(H.date)}${H.live?" · 裝置直連":""}</span></div>
     <p class="sub" style="margin:0">${summary}</p>
     <div class="hold">${list.map(x=>`
       <div>${esc(x.n)}<small>${esc(x.k==="s"||x.k==="e"?x.c:(KIND[x.k]||""))}${qtyText(x)?" · "+qtyText(x):""}</small></div>
@@ -386,6 +439,9 @@ function holdingsHTML(code,showAll){
 function bindHold(code,showAll){
   const b=$("holdMore");if(!b)return;
   b.onclick=()=>{$("holdSec").outerHTML=holdingsHTML(code,!showAll);bindHold(code,!showAll)};
+}
+function refreshSheetHold(){  // 成份股晚一步到時，更新已開啟的面板
+  if(sheetCode&&!$("sheet").hidden&&$("holdSec")){$("holdSec").outerHTML=holdingsHTML(sheetCode,false);bindHold(sheetCode,false)}
 }
 function closeSheet(){$("scrim").hidden=true;$("sheet").hidden=true;document.body.style.overflow="";lastFocus&&lastFocus.focus()}
 $("scrim").onclick=closeSheet;
@@ -479,11 +535,13 @@ function renderPf(){
 // ===== 啟動 =====
 showTab(store.get("tab","list"));
 const holdingsReady=loadHoldings().then(setHoldings).catch(()=>{HDATA={sources:{},etfs:{},warnings:[]}});
+const liveReady=holdingsReady.then(fillClientHoldings).catch(()=>false);
 loadData().then(async d=>{
   DATA=d;ETFS=d.etfs;byCode=Object.fromEntries(ETFS.map(e=>[e.code,e]));
   renderStatus();stats();renderList();renderPfInputs();renderPf();
   await holdingsReady;
-  renderStatus();renderOverlap();renderPf();
+  renderStatus();renderOverlap();renderPf();refreshSheetHold();
+  if(await liveReady){renderStatus();renderOverlap();renderPf();refreshSheetHold()}
 }).catch(err=>{
   $("status").innerHTML=`<div class="warnline"><b>⚠️ 無法載入資料</b>：${esc(err.message)}。請確認網路連線後重新整理。</div>`;
   $("list").innerHTML='<div class="empty">目前沒有資料可以顯示</div>';
