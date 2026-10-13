@@ -296,7 +296,9 @@ function renderStatus(){
   const failed=all.filter(x=>!x.ok&&!waiting(x));
   const ageH=(Date.now()-new Date(DATA.generated_at))/36e5;
   const hDates=Object.values(HOLD).map(h=>h.date).filter(Boolean).sort();
-  let html=`行情 <b>${md(s.mis&&s.mis.as_of)}</b> 收盤 · 受益人數 <b>${md(s.tdcc&&s.tdcc.as_of)}</b>（集保每週）`
+  const qt=ETFS.filter(e=>e.quote_date===(s.mis&&s.mis.as_of)).map(e=>e.quote_time).filter(Boolean).sort().pop();
+  const session=qt&&qt<"13:30"?`盤中 ${qt.slice(0,5)}`:"收盤";  // 盤中手動更新時不要標成收盤
+  let html=`行情 <b>${md(s.mis&&s.mis.as_of)}</b> ${session} · 受益人數 <b>${md(s.tdcc&&s.tdcc.as_of)}</b>（集保每週）`
     +(hDates.length?` · 成份股 <b>${md(hDates[hDates.length-1])}</b>`:"")+` · 更新 <b>${fmtTime(DATA.generated_at)}</b>`;
   if(failed.length)html+=`<div class="warnline"><b>⚠️ 部分來源這次沒抓到</b>：${failed.map(x=>x.client?`${esc(x.name)}（這台裝置也連不上，請稍後重新整理）`:`${esc(x.name)}（沿用 ${md(x.as_of)}）`).join("、")}</div>`;
   if(ageH>72)html+=`<div class="warnline"><b>⚠️ 資料超過 3 天沒更新</b>，請到 GitHub Actions 查看排程是否停止。</div>`;
