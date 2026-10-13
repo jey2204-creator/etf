@@ -1,57 +1,59 @@
 {
  "schema": 1,
- "generated_at": "2026-10-13T03:10:36+08:00",
+ "generated_at": "2026-10-13T08:26:01+08:00",
  "sources": {
   "mis": {
    "name": "證交所 MIS（市價、淨值、單位數）",
    "ok": true,
-   "as_of": "2026-10-12",
-   "fetched_at": "2026-10-13T03:10:36+08:00"
+   "as_of": "2026-10-13",
+   "fetched_at": "2026-10-13T08:26:01+08:00"
   },
   "twse_quotes": {
    "name": "證交所 每日收盤行情（上市成交量）",
    "ok": true,
    "as_of": "2026-10-12",
-   "fetched_at": "2026-10-13T03:10:36+08:00"
+   "fetched_at": "2026-10-13T08:26:01+08:00"
   },
   "tpex_quotes": {
    "name": "櫃買中心 上櫃行情（上櫃成交量）",
    "ok": true,
    "as_of": "2026-10-12",
-   "fetched_at": "2026-10-13T03:10:36+08:00"
+   "fetched_at": "2026-10-13T08:26:01+08:00"
   },
   "tdcc": {
    "name": "集保 股權分散表（受益人數）",
    "ok": true,
    "as_of": "2026-10-08",
-   "fetched_at": "2026-10-13T03:10:36+08:00"
+   "fetched_at": "2026-10-13T08:26:01+08:00"
   },
   "twse_div": {
    "name": "證交所 除權息結果（配息）",
    "ok": true,
    "as_of": "2026-10-13",
-   "fetched_at": "2026-10-13T03:10:36+08:00"
+   "fetched_at": "2026-10-13T08:26:01+08:00"
   },
   "tpex_div": {
    "name": "櫃買 除權息結果（配息）",
    "ok": true,
    "as_of": "2026-10-13",
-   "fetched_at": "2026-10-13T03:10:36+08:00"
+   "fetched_at": "2026-10-13T08:26:01+08:00"
   },
   "twse_pre": {
    "name": "證交所 除權息預告",
    "ok": true,
    "as_of": null,
-   "fetched_at": "2026-10-13T03:10:36+08:00"
+   "fetched_at": "2026-10-13T08:26:01+08:00"
   },
   "tpex_pre": {
    "name": "櫃買 除權息預告",
    "ok": true,
    "as_of": null,
-   "fetched_at": "2026-10-13T03:10:36+08:00"
+   "fetched_at": "2026-10-13T08:26:01+08:00"
   }
  },
- "warnings": [],
+ "warnings": [
+  "00878：沒有市價"
+ ],
  "holdings": "sample",
  "etfs": [
   {
@@ -149,16 +151,16 @@
    "type": "高股息",
    "market": "上市",
    "mis_name": "國泰永續高股息(基金之配息來源可能為收益平準金且並無保證收益及配息)",
-   "price": 35.24,
-   "nav": 35.17,
-   "prem_src": 0.2,
-   "prev_nav": 34.84,
-   "units": 18870290000.0,
-   "units_chg": 12000000.0,
-   "quote_date": "2026-10-12",
-   "quote_time": "16:59:53",
-   "prem": 0.199,
-   "aum": 6636.68,
+   "price": null,
+   "nav": null,
+   "prem_src": null,
+   "prev_nav": 35.17,
+   "units": 18879790000.0,
+   "units_chg": 9500000.0,
+   "quote_date": "2026-10-13",
+   "quote_time": "07:54:59",
+   "prem": null,
+   "aum": 6640.02,
    "volume": 23480,
    "volume_date": "2026-10-12",
    "holders": 1685601,
@@ -178,7 +180,7 @@
     "freq": "季配",
     "ttm": 2.49,
     "count": 4,
-    "yield": 7.07,
+    "yield": null,
     "last": {
      "date": "2026-08-18",
      "amount": 1.01
