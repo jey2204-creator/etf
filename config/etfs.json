@@ -688,15 +688,42 @@
       "div_per_year": 12,
       "div_note": "月配",
       "fee": {
-        "mgmt": [],
-        "custody": [],
-        "note": "費率待查（由網頁新增，請 Claude 補上）",
-        "source": null,
-        "checked": null
+        "mgmt": [
+          [
+            30,
+            0.4
+          ],
+          [
+            200,
+            0.3
+          ],
+          [
+            null,
+            0.2
+          ]
+        ],
+        "custody": [
+          [
+            30,
+            0.14
+          ],
+          [
+            200,
+            0.12
+          ],
+          [
+            null,
+            0.08
+          ]
+        ],
+        "note": "經理費：30億以下 0.40%、30–200億 0.30%、200億以上 0.20%；保管費：30億以下 0.14%、30–200億 0.12%、200億以上 0.08%",
+        "source": "https://www.wantgoo.com/stock/etf/00772b/profile",
+        "checked": "2026-10-13"
       },
       "added": "2026-10-13",
       "pcf": {
-        "issuer": "ctbc"
+        "issuer": "ctbc",
+        "client": true
       }
     }
   ]
