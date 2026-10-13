@@ -19,6 +19,7 @@
 from __future__ import annotations
 
 import csv
+import html as htmllib
 import http.cookiejar
 import io
 import json
@@ -27,6 +28,7 @@ import re
 import ssl
 import sys
 import time
+import urllib.error
 import urllib.request
 from datetime import date, datetime, timedelta, timezone
 from html.parser import HTMLParser
@@ -108,6 +110,12 @@ def fetch(key: str, url: str, *, data: bytes | str | None = None, headers: dict 
         except Exception as e:  # noqa: BLE001
             _last_host_hit[host] = time.time()
             last_err = e
+            if isinstance(e, urllib.error.HTTPError):  # 記下伺服器回應的開頭，方便判斷是否被防火牆擋
+                try:
+                    snippet = re.sub(r"\s+", " ", e.read(300).decode("utf-8", "replace"))
+                    last_err = RuntimeError(f"HTTP {e.code}（{e.headers.get('Server', '')}）{snippet[:160]}")
+                except Exception:  # noqa: BLE001
+                    pass
             time.sleep(4 * (attempt + 1))
     raise RuntimeError(f"{type(last_err).__name__}: {last_err}")
 
@@ -427,15 +435,22 @@ def pcf_yuanta(code, _id):
 
 def pcf_cathay(code, fund):
     base = "https://cwapi.cathaysite.com.tw/api/ETF/"
-    a = fetch_json(f"pcf_{code}_assets", f"{base}GetETFAssets?FundCode={fund}&status=1")
+    page = f"https://www.cathaysite.com.tw/ETF/detail/E{fund}?tab=etf3"
+    hdr = {"Accept": "application/json, text/plain, */*", "Origin": "https://www.cathaysite.com.tw",
+           "Referer": "https://www.cathaysite.com.tw/", "lang": "zh_TW"}
+    try:  # 先開一次產品頁，與瀏覽器行為一致
+        fetch(f"pcf_{code}_warmup", page, tries=1)
+    except Exception:  # noqa: BLE001
+        pass
+    a = fetch_json(f"pcf_{code}_assets", f"{base}GetETFAssets?FundCode={fund}&status=1", headers=hdr)
     d = ms_date((a.get("result") or {}).get("preDate"))
     if not d:
         raise ValueError("國泰沒有回傳資料日期")
     q = f"FundCode={fund}&SearchDate={d.isoformat()}&status=1"
     items = []
-    for x in fetch_json(f"pcf_{code}_stocks", f"{base}GetETFDetailStockList?{q}").get("result") or []:
+    for x in fetch_json(f"pcf_{code}_stocks", f"{base}GetETFDetailStockList?{q}", headers=hdr).get("result") or []:
         items.append(_item("s", x.get("stockCode"), x.get("stockName"), x.get("volumn"), x.get("weights")))
-    for x in fetch_json(f"pcf_{code}_futures", f"{base}GetETFDetailFutureList?{q}").get("result") or []:
+    for x in fetch_json(f"pcf_{code}_futures", f"{base}GetETFDetailFutureList?{q}", headers=hdr).get("result") or []:
         items.append(_item("f", x.get("ftNo"), f"{x.get('ftName', '')} {x.get('ftDate', '')}".strip(),
                            x.get("volumn"), x.get("ntMkval")))
     return items, d
@@ -526,7 +541,7 @@ def pcf_kgi(code, fund):
             if "契約年月" in idx and r[idx["契約年月"]]:
                 name = f"{name} {r[idx['契約年月']]}"
             items.append(_item("f", r[idx["期貨代號"]], name, r[idx["口數"]], r[idx["權重(%)"]]))
-    plain = re.sub(r"<[^>]+>", " ", html)
+    plain = htmllib.unescape(re.sub(r"<[^>]+>", " ", html))
     m = re.search(r"\((\d{4}/\d{1,2}/\d{1,2})\)\s*每受益權單位淨資產價值", plain) or \
         re.search(r'id="DataDate"[^>]*value="(\d{4}/\d{1,2}/\d{1,2})"', html)
     return items, ms_date(m.group(1)) if m else None
