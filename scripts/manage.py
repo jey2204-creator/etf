@@ -15,7 +15,9 @@ from datetime import datetime, timedelta
 sys.path.insert(0, str(__import__("pathlib").Path(__file__).resolve().parent))
 import update as U  # noqa: E402
 
-TYPES = ["市值型", "高股息", "主動式", "槓桿", "債券"]
+TYPES = ["市值型", "高股息", "主動式", "海外", "槓桿", "債券"]
+# 投資海外股票的 ETF（不放進台股持股對照表）
+OVERSEAS = re.compile(r"美國|美股|全球|世界|越南|韓國|KOSPI|日本|日韓|印度|中國|陸股|歐洲|標普|S&P|NASDAQ|那斯達克|費城|電動車", re.I)
 ISSUERS = [("主動統一", "uni"), ("統一", "uni"), ("元大", "yuanta"), ("國泰", "cathay"),
            ("群益", "capital"), ("富邦", "fubon"), ("凱基", "kgi"),
            ("主動復華", "fhtrust"), ("復華", "fhtrust")]
@@ -29,9 +31,17 @@ def guess_type(code: str, name: str) -> str:
         return "債券"
     if code.endswith("A") or name.startswith("主動"):
         return "主動式"
+    if OVERSEAS.search(name):
+        return "海外"
     if re.search(r"高股息|高息|股息|收益|息", name):
         return "高股息"
     return "市值型"
+
+
+def clean_name(name: str) -> str:
+    """證交所名稱有時帶「（原名稱：…）」或「ETF基金」尾巴，去掉比較好讀。"""
+    name = re.sub(r"[（(]原名稱[^）)]*[）)]", "", name).strip()
+    return re.sub(r"\s*(ETF)?基金$", "", name).strip() or name
 
 
 def div_count(code: str, market: str) -> int:
@@ -93,7 +103,7 @@ def add(cfg, code: str, want_type: str | None) -> tuple[int, str]:
     hit = next((m for m in rows if str(m.get("a", "")).strip() == code), None)
     if not hit:
         return 3, f"❌ 證交所 ETF 清單裡找不到 {code}，請確認代號（只支援國內上市、上櫃 ETF）。"
-    name = str(hit.get("b", "")).strip()
+    name = clean_name(str(hit.get("b", "")))
     try:
         tpex = {str(r.get("SecuritiesCompanyCode", "")).strip() for r in U.fetch_json("tpex_quotes", U.URLS["tpex_quotes"])}
     except Exception:  # noqa: BLE001
