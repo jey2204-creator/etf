@@ -625,7 +625,7 @@ function renderHm(){
   let L=hmInd?all.filter(r=>r.ind===hmInd):all;
   if(+hmTop)L=L.slice(0,+hmTop);
   const shade=w=>{const a=Math.min(Math.sqrt(Math.max(w,0)/20),1);return `background:color-mix(in srgb,var(--accent) ${Math.round(a*80)}%,var(--surface));color:${a>.6?"var(--on-accent)":"var(--fg)"}`};
-  const cell=x=>{if(!x)return '<td></td>';const w=f(x.w,x.w>=10?1:2)+"%",q=fmtLots(x.q);
+  const cell=x=>{if(!x)return '<td></td>';const w=x.w>0&&x.w<0.005?"<0.01%":f(x.w,x.w>=10?1:2)+"%",q=fmtLots(x.q);
     return `<td style="${shade(x.w||0)}">${hmShow==="q"?q:hmShow==="w"?w:`${w}<small>${q}</small>`}</td>`};
   $("hm").innerHTML=`<table><thead><tr><th>股票 · 市值</th>${cols.map(c=>`<th>${esc(c)}<small>${esc((byCode[c]||{}).name||"")}</small></th>`).join("")}<th>持有<small>檔數</small></th></tr></thead><tbody>${
     L.map(r=>`<tr><th data-s="${esc(r.c)}"><span class="rk">${r.rank||"–"}</span>${esc(r.n)}<small>${esc(r.c)}${isNum(r.cap)?" · "+fmtCap(r.cap):""}</small></th>${cols.map(c=>cell(r.by[c])).join("")}<td class="cnt">${r.cnt}</td></tr>`).join("")
