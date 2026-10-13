@@ -1,0 +1,72 @@
+name: 新增或刪除 ETF
+
+# 在網頁按「新增／刪除」會開一張 Issue，標題「新增 ETF 00713」或「刪除 ETF 0056」。
+# 只有 repo 擁有者開的 Issue 才會執行，其他人開的一律忽略。
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: write
+  issues: write
+
+concurrency:
+  group: update-data
+  cancel-in-progress: false
+
+jobs:
+  manage:
+    if: github.event.issue.user.login == github.repository_owner && (startsWith(github.event.issue.title, '新增') || startsWith(github.event.issue.title, '刪除') || startsWith(github.event.issue.title, '移除'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: 取得程式碼
+        env:
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: git clone --depth 1 "https://x-access-token:${TOKEN}@github.com/${GITHUB_REPOSITORY}.git" repo
+
+      - name: 修改清單
+        working-directory: repo
+        env:
+          TITLE: ${{ github.event.issue.title }}
+          BODY: ${{ github.event.issue.body }}
+        run: |
+          set +e
+          python3 scripts/manage.py "$TITLE" "$BODY" > ../result.md
+          echo "RC=$?" >> "$GITHUB_ENV"
+          cat ../result.md
+
+      - name: 立即更新資料並提交
+        if: env.RC == '0'
+        working-directory: repo
+        env:
+          TITLE: ${{ github.event.issue.title }}
+          NUM: ${{ github.event.issue.number }}
+        run: |
+          python3 scripts/update.py || echo "部分來源失敗，沿用前次資料"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add config/ data/
+          git commit -m "清單變更：${TITLE}（#${NUM}）"
+          git pull --rebase --quiet
+          git push
+          printf '\n\n網站約 1–2 分鐘後更新，手機重新整理即可看到。' >> ../result.md
+
+      - name: 回覆並關閉 Issue
+        if: always()
+        env:
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NUM: ${{ github.event.issue.number }}
+        run: |
+          [ -s result.md ] || echo "❌ 執行失敗，請到 Actions 查看紀錄。" > result.md
+          python3 - <<'PY'
+          import json, os, urllib.request
+          repo, num, tok = os.environ["GITHUB_REPOSITORY"], os.environ["NUM"], os.environ["TOKEN"]
+          def call(method, path, data):
+              req = urllib.request.Request(f"https://api.github.com/repos/{repo}/issues/{num}{path}",
+                  data=json.dumps(data).encode(), method=method,
+                  headers={"Authorization": f"Bearer {tok}", "Accept": "application/vnd.github+json"})
+              urllib.request.urlopen(req).read()
+          call("POST", "/comments", {"body": open("result.md", encoding="utf-8").read()})
+          call("PATCH", "", {"state": "closed"})
+          PY
