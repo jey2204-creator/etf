@@ -346,6 +346,27 @@ const CLIENT_PCF={
     const [s,fu]=await Promise.all([get("GetETFDetailStockList?"+q),get("GetETFDetailFutureList?"+q)]);
     return {date,items:[...(s.result||[]).map(x=>mkItem("s",x.stockCode,x.stockName,x.volumn,x.weights)),
       ...(fu.result||[]).map(x=>mkItem("f",x.ftNo,`${x.ftName||""} ${x.ftDate||""}`.trim(),x.volumn,x.ntMkval))]};
+  },
+  // 中國信託：網站防火牆擋 GitHub 主機，但允許跨網域讀取。先取通行碼，再查清單（id 沒填就用代號找）
+  async ctbc(id,code){
+    const api="https://www.ctbcinvestments.com.tw/API/";
+    const post=async(p,tok,body)=>{const r=await fetch(`${api}${p}?token=${encodeURIComponent(tok)}`,{method:"POST",cache:"no-store",
+      headers:{"content-type":"application/json; charset=utf-8"},body:JSON.stringify(Object.assign({token:tok},body||{}))});
+      if(!r.ok)throw new Error("HTTP "+r.status);const j=await r.json();if(j.ResultCode!==0)throw new Error(j.ResultMsg||"中信回傳錯誤");return j.Data};
+    const tok=(await post("home/AuthToken","www.ctbcinvestments.com")).token;
+    let fid=id;
+    if(!fid){const L=((await post("etf/ETFList",tok,{IsWithETF:"Y"}))||{}).Data||[];fid=(L.find(x=>String(x.ETF_ID).trim()===code)||{}).FID}
+    if(!fid)throw new Error("中信清單找不到 "+code);
+    const K={STOCK:"s",FUTURE:"f",FUTURES:"f",BOND:"b",ETF:"e",FUND:"e"};
+    const d=new Date(Date.now()+8*36e5);
+    for(let i=0;i<8;i++){
+      const ds=d.toISOString().slice(0,10).replace(/-/g,"/");
+      const D=(await post("etf/Buyback",tok,{FID:fid,StartDate:ds}))||{};
+      const items=(D.Detail||[]).filter(g=>K[g.Code]).flatMap(g=>(g.Data||[]).map(x=>mkItem(K[g.Code],x.code_,x.name_,x.qty_,x.weights_)));
+      if(items.length)return{date:isoDate(((D.Data||[])[0]||{})["公告日"])||isoDate(ds),items};
+      d.setUTCDate(d.getUTCDate()-1);
+    }
+    throw new Error("中信最近 8 天都沒有清單");
   }
 };
 async function fillClientHoldings(){
@@ -354,7 +375,7 @@ async function fillClientHoldings(){
   try{
     await Promise.all(jobs.map(async([code,e])=>{
       try{
-        const r=await withTimeout(CLIENT_PCF[e.client.issuer](e.client.id),15000);
+        const r=await withTimeout(CLIENT_PCF[e.client.issuer](e.client.id,code),20000);
         const items=r.items.filter(x=>x.c&&isNum(x.w)).sort((a,b)=>b.w-a.w);
         if(!items.length)throw new Error("沒有持股資料");
         HOLD[code]={date:r.date,issuer:e.issuer,stale:false,live:true,items};
