@@ -413,7 +413,11 @@
         "source": "https://www.wantgoo.com/stock/etf/00927/profile",
         "checked": "2026-10-13"
       },
-      "added": "2026-10-13"
+      "added": "2026-10-13",
+      "pcf": {
+        "issuer": "capital",
+        "id": "366"
+      }
     },
     {
       "code": "00893",
@@ -439,7 +443,12 @@
         "source": "https://www.stockfeel.com.tw/?p=152571",
         "checked": "2026-10-13"
       },
-      "added": "2026-10-13"
+      "added": "2026-10-13",
+      "pcf": {
+        "issuer": "cathay",
+        "id": "CW",
+        "client": true
+      }
     },
     {
       "code": "009828",
