@@ -8,8 +8,8 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="ETF觀察">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#f3f5f3" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#0f1312" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f2f5f9" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0e1219" media="(prefers-color-scheme: dark)">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png">
@@ -17,19 +17,19 @@
 <style>
 /* Layout: 手機優先。上方資料狀態與摘要、中間卡片清單、底部分頁列，點卡片彈出底部面板 */
 :root{
-  --bg:#f3f5f3; --surface:#ffffff; --fg:#1b2220; --muted:#66706b; --line:#dfe3e0;
-  --accent:#1f6b5c; --on-accent:#ffffff; --up:#c8312b; --down:#1f8a4c; --up-bg:#fdeceb; --down-bg:#e6f3eb;
-  --warn:#9a6700; --warn-bg:#fff5d6; --scrim:rgba(10,14,12,.45);
+  --bg:#f2f5f9; --surface:#ffffff; --fg:#1a2230; --muted:#627083; --line:#dce3ec;
+  --accent:#1d6fc0; --on-accent:#ffffff; --hm:#4aa3e8; --up:#c8312b; --down:#1f8a4c; --up-bg:#fdeceb; --down-bg:#e6f3eb;
+  --warn:#9a6700; --warn-bg:#fff5d6; --scrim:rgba(10,14,22,.45);
   --sans:"Noto Sans TC",system-ui,-apple-system,"PingFang TC",sans-serif;
   --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
-  --bg:#0f1312; --surface:#1a201e; --fg:#e7ece9; --muted:#97a19c; --line:#2b3330;
-  --accent:#5fbfa8; --on-accent:#0f1312; --up:#ff6b62; --down:#4fca82; --up-bg:#3a1e1c; --down-bg:#15301f;
+  --bg:#0e1219; --surface:#171d27; --fg:#e6ecf4; --muted:#95a1b3; --line:#283141;
+  --accent:#6bb6f2; --on-accent:#0e1219; --hm:#5cb6f2; --up:#ff6b62; --down:#4fca82; --up-bg:#3a1e1c; --down-bg:#15301f;
   --warn:#f2c14e; --warn-bg:#352a0e; --scrim:rgba(0,0,0,.6); color-scheme:dark}}
 :root[data-theme="dark"]{
-  --bg:#0f1312; --surface:#1a201e; --fg:#e7ece9; --muted:#97a19c; --line:#2b3330;
-  --accent:#5fbfa8; --on-accent:#0f1312; --up:#ff6b62; --down:#4fca82; --up-bg:#3a1e1c; --down-bg:#15301f;
+  --bg:#0e1219; --surface:#171d27; --fg:#e6ecf4; --muted:#95a1b3; --line:#283141;
+  --accent:#6bb6f2; --on-accent:#0e1219; --hm:#5cb6f2; --up:#ff6b62; --down:#4fca82; --up-bg:#3a1e1c; --down-bg:#15301f;
   --warn:#f2c14e; --warn-bg:#352a0e; --scrim:rgba(0,0,0,.6); color-scheme:dark}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0}img{max-width:100%}[hidden]{display:none!important}
@@ -750,7 +750,7 @@ function renderHm(){
   $("hmInd").innerHTML='<option value="">全部產業</option>'+inds.map(x=>`<option${x===hmInd?" selected":""}>${esc(x)}</option>`).join("");
   let L=hmInd?all.filter(r=>r.ind===hmInd):all;
   if(+hmTop)L=L.slice(0,+hmTop);
-  const shade=w=>{const a=Math.min(Math.sqrt(Math.max(w,0)/20),1);return `background:color-mix(in srgb,var(--accent) ${Math.round(a*80)}%,var(--surface));color:${a>.6?"var(--on-accent)":"var(--fg)"}`};
+  const shade=w=>{const a=Math.min(Math.sqrt(Math.max(w,0)/20),1);return `background:color-mix(in srgb,var(--hm) ${Math.round(a*85)}%,var(--surface));color:var(--fg)`};
   const full=hmFull;
   const cell=x=>{if(!x)return '<td></td>';
     if(full){const v=!(x.w>=0.05)?"·":f(x.w,1);return `<td style="${shade(x.w||0)}">${v}</td>`}const w=x.w>0&&x.w<0.005?"<0.01%":f(x.w,x.w>=10?1:2)+"%",q=fmtLots(x.q);
