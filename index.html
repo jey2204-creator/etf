@@ -126,7 +126,7 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
 <div class="page">
   <header>
     <h1>ETF 觀察表</h1>
-    <p class="sub" id="sub">10 檔追蹤清單</p>
+    <p class="sub" id="sub">ETF 追蹤清單</p>
   </header>
   <div class="status" id="status">正在載入資料…</div>
 
@@ -137,6 +137,7 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
       <div class="hscroll" id="chips"></div>
       <div class="bar-row">
         <span class="sub" id="count"></span>
+        <button class="chip" id="manageBtn" type="button">＋ 新增／刪除</button>
         <select id="sort" aria-label="排序方式">
           <option value="aum">規模 大→小</option>
           <option value="premD">溢價 高→低</option>
@@ -305,7 +306,7 @@ async function fillClientHoldings(){
 function showTab(t){
   document.querySelectorAll(".tab").forEach(el=>el.hidden=el.id!=="tab-"+t);
   document.querySelectorAll("nav.tabs button").forEach(b=>b.setAttribute("aria-selected",b.dataset.t===t));
-  $("sub").textContent={list:"10 檔追蹤清單 · 點卡片看詳情",overlap:"哪幾檔其實長得一樣",pf:"你實際持有哪些股票",flow:"每週集保資料 · 資金與人氣"}[t];
+  $("sub").textContent={list:`${ETFS.length||""} 檔追蹤清單 · 點卡片看詳情`,overlap:"哪幾檔其實長得一樣",pf:"你實際持有哪些股票",flow:"每週集保資料 · 資金與人氣"}[t];
   store.set("tab",t);window.scrollTo(0,0);
 }
 document.querySelectorAll("nav.tabs button").forEach(b=>b.onclick=()=>showTab(b.dataset.t));
@@ -479,7 +480,9 @@ $("sheet").addEventListener("touchstart",e=>{y0=$("sheet").scrollTop<=0?e.touche
 $("sheet").addEventListener("touchend",e=>{if(y0!=null&&e.changedTouches[0].clientY-y0>80)closeSheet();y0=null},{passive:true});
 
 // ===== 成份股重疊：兩檔共同持有的股票，取較低權重加總 =====
-const STOCK_ETFS=["0050","006208","009816","0052","00981A","0056","00878","00919"];
+let STOCK_ETFS=[];  // 參與重疊比較的股票型 ETF，資料載入後依類型與規模排序
+const TYPE_ORDER={"市值型":0,"主動式":1,"高股息":2};
+function setStockEtfs(){STOCK_ETFS=ETFS.filter(e=>e.type in TYPE_ORDER).sort((a,b)=>TYPE_ORDER[a.type]-TYPE_ORDER[b.type]||nz(b.aum)-nz(a.aum)).map(e=>e.code)}
 function overlap(a,b){
   const wb={};stocksOf(b).forEach(x=>{wb[x.c]=x.w||0});
   return stocksOf(a).reduce((s,x)=>s+(wb[x.c]?Math.min(x.w||0,wb[x.c]):0),0);
@@ -560,6 +563,59 @@ function renderPf(){
   $("pfWarn").innerHTML=msg;
 }
 
+// ===== 新增／刪除 ETF：開一張 GitHub Issue，排程自動改清單 =====
+function repoInfo(){
+  const m=location.hostname.match(/^([^.]+)\.github\.io$/), r=location.pathname.split("/").filter(Boolean)[0];
+  return m&&r?[m[1],r]:["jey2204-creator","etf"];
+}
+function issueUrl(title,body){const [o,r]=repoInfo();return `https://github.com/${o}/${r}/issues/new?title=${encodeURIComponent(title)}&body=${encodeURIComponent(body)}`}
+function openManage(){
+  lastFocus=document.activeElement;sheetCode=null;
+  const types=["自動判斷","市值型","高股息","主動式","槓桿","債券"];
+  $("sheet").innerHTML=`
+    <div class="grab"></div>
+    <div class="sheet-head"><h2 id="sheetTitle">新增／刪除 ETF</h2><button class="close" id="closeBtn" aria-label="關閉">✕</button></div>
+    <section style="margin-top:0">
+      <b>新增</b>
+      <div style="display:grid;grid-template-columns:1fr auto;gap:8px">
+        <input id="addCode" inputmode="text" autocapitalize="characters" placeholder="ETF 代號，例如 00713" maxlength="7"
+          style="font:inherit;font-family:var(--mono);font-size:16px;padding:10px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--fg)">
+        <select id="addType" aria-label="類型">${types.map(t=>`<option>${t}</option>`).join("")}</select>
+      </div>
+      <button class="chip" id="addGo" type="button" style="align-self:flex-start">送出新增</button>
+      <p class="hint" id="addMsg" style="margin:0"></p>
+    </section>
+    <section>
+      <b>目前清單（${ETFS.length} 檔）</b>
+      <div class="rows" style="grid-template-columns:1fr auto">${ETFS.map(e=>`
+        <dt style="color:var(--fg)"><span class="num" style="color:var(--accent);font-weight:600">${esc(e.code)}</span> ${esc(e.name)}</dt>
+        <dd><button class="chip" data-del="${esc(e.code)}" type="button">刪除</button></dd>`).join("")}</div>
+    </section>
+    <section>
+      <b>怎麼運作</b>
+      <p class="hint" style="margin:0">按下後會開啟 GitHub 的「New issue」頁面，標題已經填好，按 <b>Create</b>（或 Submit new issue）送出即可。
+      系統約 2–3 分鐘內改好清單、抓好資料，並在那張 Issue 回覆結果；回來重新整理網頁就看得到。只有你的 GitHub 帳號送出的才會生效。</p>
+      <p class="hint" style="margin:0">自動帶入：市價、折溢價、規模、受益人數、配息、資金流向。管理費需要另外查；成份股目前支援元大、富邦（其他投信請找 Claude 設定）。</p>
+    </section>`;
+  $("addGo").onclick=()=>{
+    const code=$("addCode").value.trim().toUpperCase();
+    if(!/^\d{4,6}[A-Z]?$/.test(code)){$("addMsg").textContent="代號格式不對，例如 00713、00981A。";return}
+    if(byCode[code]){$("addMsg").textContent=`${code} 已經在清單裡了。`;return}
+    const t=$("addType").value;
+    window.open(issueUrl(`新增 ETF ${code}`,`類型：${t==="自動判斷"?"自動":t}\n\n（由 ETF 觀察表送出）`),"_blank");
+    $("addMsg").textContent="已開啟 GitHub，送出後約 2–3 分鐘完成。";
+  };
+  $("sheet").querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>{
+    const c=b.dataset.del,e=byCode[c];
+    if(!confirm(`確定要從清單移除 ${c} ${e?e.name:""}？\n（歷史資料會保留，之後可以再加回來）`))return;
+    window.open(issueUrl(`刪除 ETF ${c}`,"（由 ETF 觀察表送出）"),"_blank");
+  });
+  $("sheet").setAttribute("aria-labelledby","sheetTitle");
+  $("scrim").hidden=false;$("sheet").hidden=false;$("sheet").scrollTop=0;document.body.style.overflow="hidden";
+  $("closeBtn").onclick=closeSheet;$("addCode").focus();
+}
+$("manageBtn").onclick=openManage;
+
 // ===== 資金流向（集保每週）=====
 let flowP=store.get("flowP","4");
 const sgn=(v,d=1)=>isNum(v)?(v>0?"+":"")+f(v,d):"—";
@@ -599,7 +655,7 @@ showTab(store.get("tab","list"));
 const holdingsReady=loadHoldings().then(setHoldings).catch(()=>{HDATA={sources:{},etfs:{},warnings:[]}});
 const liveReady=holdingsReady.then(fillClientHoldings).catch(()=>false);
 loadData().then(async d=>{
-  DATA=d;ETFS=d.etfs;byCode=Object.fromEntries(ETFS.map(e=>[e.code,e]));
+  DATA=d;ETFS=d.etfs;byCode=Object.fromEntries(ETFS.map(e=>[e.code,e]));setStockEtfs();showTab(store.get("tab","list"));
   renderStatus();stats();renderList();renderPfInputs();renderPf();renderFlow();
   await holdingsReady;
   renderStatus();renderOverlap();renderPf();refreshSheetHold();

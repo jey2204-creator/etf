@@ -28,7 +28,11 @@ GitHub Actions（`.github/workflows/update.yml`）每個交易日台灣時間 14
 成份股輸出在 `data/holdings.json`，每筆為「種類、代號、名稱、數量、權重%」，種類 s=股票（股數）、f=期貨（口數）、b=債券（面額）、e=ETF。
 
 ## 新增或修改追蹤的 ETF
-編輯 `config/etfs.json`：代號、名稱、類型、市場（TWSE 上市／TPEX 上櫃）、每年配息次數、費率級距，以及 `pcf`（成份股來源投信與該投信的基金代碼）。目前支援的投信：yuanta、cathay、capital、fubon、uni、kgi；`client: true` 目前只支援 cathay。
+最簡單：在網頁總覽按「＋ 新增／刪除」，會開一張 GitHub Issue（標題「新增 ETF 00713」或「刪除 ETF 0056」），
+`.github/workflows/manage.yml` 會用 `scripts/manage.py` 改清單、立刻更新資料，並在 Issue 回覆結果後關閉。只有 repo 擁有者開的 Issue 會生效。
+自動帶入名稱、市場、類型（可指定）、配息次數；管理費留空待查，成份股自動接上元大、富邦，其他投信需手動設定 `pcf`。
+
+手動方式：編輯 `config/etfs.json`：代號、名稱、類型、市場（TWSE 上市／TPEX 上櫃）、每年配息次數、費率級距，以及 `pcf`（成份股來源投信與該投信的基金代碼）。目前支援的投信：yuanta、cathay、capital、fubon、uni、kgi；`client: true` 目前只支援 cathay。
 
 ## 檔案
 - `index.html`：網頁本體；`sw.js`：離線快取（更新網頁時把 `CACHE` 版本號 +1）

@@ -1,5 +1,5 @@
 // 版本號：每次更新網頁就改這裡，iPhone 才會換成新版
-const CACHE="etf-v5";
+const CACHE="etf-v6";
 const SHELL=["./","./index.html","./manifest.webmanifest","./icons/apple-touch-icon.png","./icons/icon-192.png"];
 // 可離線沿用的外部資料：GitHub 原始檔、國泰申購買回清單（網頁端直接讀取）
 const DATA_HOSTS=["raw.githubusercontent.com","cwapi.cathaysite.com.tw"];
