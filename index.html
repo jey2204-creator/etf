@@ -94,9 +94,19 @@ select{font:inherit;font-size:.85rem;padding:6px 10px;border-radius:8px;border:1
 .warn{color:var(--up);font-weight:600}
 .src{display:grid;grid-template-columns:1fr auto;gap:4px 12px;font-size:.8rem}
 .src .ok{color:var(--down)} .src .ng{color:var(--up)}
+.flow{display:grid;grid-template-columns:minmax(7em,1.2fr) 1.4fr auto;gap:10px 10px;align-items:center;font-size:.86rem}
+.flow>div{min-width:0}
+.flow small{display:block;color:var(--muted);font-size:.72rem}
+.flow .r{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+.dbar{position:relative;height:10px;background:var(--line);border-radius:5px}
+.dbar:after{content:"";position:absolute;left:50%;top:-2px;bottom:-2px;width:1px;background:var(--muted)}
+.dbar i{position:absolute;top:0;bottom:0;border-radius:5px}
+.pos{color:var(--up)} .neg{color:var(--down)}
+.spark{display:flex;align-items:center;gap:2px;height:44px}
+.spark i{flex:1;border-radius:2px;min-height:1px}
 .empty{padding:24px;text-align:center;color:var(--muted)}
 nav.tabs{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);display:flex;justify-content:center;padding:6px 8px calc(6px + env(safe-area-inset-bottom,0px));z-index:10}
-nav.tabs .in{display:grid;grid-template-columns:repeat(3,1fr);width:100%;max-width:640px}
+nav.tabs .in{display:grid;grid-template-columns:repeat(4,1fr);width:100%;max-width:640px}
 nav.tabs button{all:unset;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 0;font-size:.72rem;color:var(--muted);border-radius:10px}
 nav.tabs button svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8}
 nav.tabs button[aria-selected="true"]{color:var(--accent);font-weight:600}
@@ -135,6 +145,7 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
           <option value="holders">受益人 多→少</option>
           <option value="fee">管理費 低→高</option>
           <option value="vol">成交量 大→小</option>
+          <option value="flow4">近4週淨申購 多→少</option>
         </select>
       </div>
       <div class="list" id="list"><div class="empty">正在載入資料…</div></div>
@@ -174,6 +185,16 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
       </div>
     </div>
   </div>
+
+  <!-- 分頁 4：資金流向 -->
+  <div id="tab-flow" class="tab" hidden>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <h2>資金流向</h2>
+      <p class="sub">用集保每週的受益人數與單位數，看錢和人正在流進哪幾檔。淨申購 ≈ 單位數增減 × 當週淨值。</p>
+      <div class="hscroll" id="flowChips"></div>
+      <div class="panel"><div class="flow" id="flowList"></div><p class="hint" id="flowNote"></p></div>
+    </div>
+  </div>
 </div>
 
 <nav class="tabs" role="tablist">
@@ -181,6 +202,7 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
     <button role="tab" data-t="list" aria-selected="true"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg>總覽</button>
     <button role="tab" data-t="overlap" aria-selected="false"><svg viewBox="0 0 24 24"><circle cx="9" cy="12" r="6"/><circle cx="15" cy="12" r="6"/></svg>成份股重疊</button>
     <button role="tab" data-t="pf" aria-selected="false"><svg viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>我的組合</button>
+    <button role="tab" data-t="flow" aria-selected="false"><svg viewBox="0 0 24 24"><path d="M3 17l5-5 4 4 8-8"/><path d="M15 8h5v5"/></svg>資金流向</button>
   </div>
 </nav>
 
@@ -283,7 +305,7 @@ async function fillClientHoldings(){
 function showTab(t){
   document.querySelectorAll(".tab").forEach(el=>el.hidden=el.id!=="tab-"+t);
   document.querySelectorAll("nav.tabs button").forEach(b=>b.setAttribute("aria-selected",b.dataset.t===t));
-  $("sub").textContent={list:"10 檔追蹤清單 · 點卡片看詳情",overlap:"哪幾檔其實長得一樣",pf:"你實際持有哪些股票"}[t];
+  $("sub").textContent={list:"10 檔追蹤清單 · 點卡片看詳情",overlap:"哪幾檔其實長得一樣",pf:"你實際持有哪些股票",flow:"每週集保資料 · 資金與人氣"}[t];
   store.set("tab",t);window.scrollTo(0,0);
 }
 document.querySelectorAll("nav.tabs button").forEach(b=>b.onclick=()=>showTab(b.dataset.t));
@@ -324,6 +346,8 @@ function stats(){
   if(s.length){const lo=s[s.length-1];cards.push(["溢價最高",s[0].code,premHTML(s[0].prem),s[0].name]);cards.push([lo.prem<0?"折價最深":"溢價最低",lo.code,premHTML(lo.prem),lo.name])}
   if(y)cards.push(["殖利率最高",y.code,f(y.div.yield)+"%",y.name]);
   if(ppl)cards.push(["受益人最多",ppl.code,f(holdersWan(ppl),1)+" 萬人",ppl.name]);
+  const fl=[...ETFS].filter(e=>e.flow&&isNum(e.flow.flow_w4)).sort((a,b)=>b.flow.flow_w4-a.flow.flow_w4)[0];
+  if(fl)cards.push(["近4週資金流入最多",fl.code,sgn(fl.flow.flow_w4,0)+" 億",fl.name]);
   cards.push(["清單總規模",f(tot,0)+" 億","",""]);
   $("stats").innerHTML=cards.map(([k,v,x,n])=>`<div class="stat"><div class="k">${k}</div><div class="v">${v}</div><div class="s">${x} ${esc(n)}</div></div>`).join("");
 }
@@ -336,7 +360,8 @@ const nz=(v,low)=>isNum(v)?v:(low?Infinity:-Infinity);
 const SORTS={
   aum:(a,b)=>nz(b.aum)-nz(a.aum), premD:(a,b)=>nz(b.prem)-nz(a.prem), premA:(a,b)=>nz(a.prem,1)-nz(b.prem,1),
   yield:(a,b)=>nz(yieldOf(b))-nz(yieldOf(a)), holders:(a,b)=>nz(b.holders)-nz(a.holders),
-  fee:(a,b)=>nz(feeOf(a),1)-nz(feeOf(b),1), vol:(a,b)=>nz(b.volume)-nz(a.volume)
+  fee:(a,b)=>nz(feeOf(a),1)-nz(feeOf(b),1), vol:(a,b)=>nz(b.volume)-nz(a.volume),
+  flow4:(a,b)=>nz(b.flow&&b.flow.flow_w4)-nz(a.flow&&a.flow.flow_w4)
 };
 function renderList(){
   const list=ETFS.filter(e=>filter==="全部"||e.type===filter).sort(SORTS[sortBy]||SORTS.aum);
@@ -391,6 +416,7 @@ function openSheet(code){
       <p class="sub" style="margin:0">手動查核 ${ymd(fee.checked)}${fee.source?` · <a href="${esc(fee.source)}" target="_blank" rel="noopener">來源</a>`:""}</p>
     </section>
     ${holdingsHTML(code,false)}
+    ${flowSheetHTML(e)}
     <section>
       <b>資料日期</b>
       <dl class="rows">
@@ -534,13 +560,47 @@ function renderPf(){
   $("pfWarn").innerHTML=msg;
 }
 
+// ===== 資金流向（集保每週）=====
+let flowP=store.get("flowP","4");
+const sgn=(v,d=1)=>isNum(v)?(v>0?"+":"")+f(v,d):"—";
+const cls=v=>isNum(v)&&v!==0?(v>0?"pos":"neg"):"";
+function renderFlow(){
+  const P=[["1","近 1 週"],["4","近 4 週"],["13","近 13 週"]];
+  $("flowChips").innerHTML=P.map(([k,t])=>`<button class="chip" data-p="${k}" aria-pressed="${k===flowP}">${t}</button>`).join("");
+  $("flowChips").querySelectorAll(".chip").forEach(c=>c.onclick=()=>{flowP=c.dataset.p;store.set("flowP",flowP);renderFlow()});
+  const L=ETFS.filter(e=>e.flow).map(e=>({e,v:e.flow["flow_w"+flowP],h:e.flow["holders_w"+flowP]}));
+  L.sort((a,b)=>nz(b.v)-nz(a.v));
+  const max=Math.max(1,...L.map(x=>Math.abs(x.v||0)));
+  $("flowList").innerHTML=L.map(({e,v,h})=>`
+    <div><span class="num" style="color:var(--accent);font-weight:600">${esc(e.code)}</span> ${esc(e.name)}<small>受益人 <span class="${cls(h)}">${sgn(h,0)}</span> 人</small></div>
+    <div class="dbar">${isNum(v)?`<i style="${v>=0?"left:50%":"right:50%"};width:${Math.abs(v)/max*50}%;background:var(--${v>=0?"up":"down"})"></i>`:""}</div>
+    <div class="r ${cls(v)}">${isNum(v)?sgn(v,1)+" 億":"—"}</div>`).join("")||'<div class="empty" style="grid-column:1/-1">還沒有每週資料</div>';
+  const d=L.map(x=>x.e.flow.date).filter(Boolean).sort().pop();
+  $("flowNote").textContent=`集保資料截至 ${ymd(d)}（每週更新一次）。紅色為淨申購（資金流入），綠色為淨贖回。分割或剛上市的週不計，顯示「—」。`;
+}
+function flowSheetHTML(e){
+  const F=e.flow;if(!F)return"";
+  const W=F.weeks||[], vals=W.map(w=>w[2]).filter(isNum), max=Math.max(1,...vals.map(Math.abs));
+  const bars=W.map(([d,h,v])=>`<i title="${ymd(d)} ${isNum(v)?sgn(v,1)+"億":"—"}" style="height:${isNum(v)?Math.max(4,Math.abs(v)/max*100):4}%;background:${isNum(v)?`var(--${v>=0?"up":"down"})`:"var(--line)"};align-self:${isNum(v)&&v<0?"flex-start":"flex-end"}"></i>`).join("");
+  return `<section><div class="bar-row"><b>資金流向</b><span class="sub">集保 ${ymd(F.date)}</span></div>
+    <dl class="rows">
+      <dt>近 1 週淨申購</dt><dd class="${cls(F.flow_w1)}">${isNum(F.flow_w1)?sgn(F.flow_w1,1)+" 億":"—"}</dd>
+      <dt>近 4 週淨申購</dt><dd class="${cls(F.flow_w4)}">${isNum(F.flow_w4)?sgn(F.flow_w4,1)+" 億":"—"}</dd>
+      <dt>近 13 週淨申購</dt><dd class="${cls(F.flow_w13)}">${isNum(F.flow_w13)?sgn(F.flow_w13,1)+" 億":"—"}</dd>
+      <dt>受益人 近 1／4／13 週</dt><dd>${sgn(F.holders_w1,0)}／${sgn(F.holders_w4,0)}／${sgn(F.holders_w13,0)}</dd>
+    </dl>
+    <div class="sub">近 13 週每週淨申購（左舊右新）</div>
+    <div class="spark" aria-hidden="true">${bars}</div>
+  </section>`;
+}
+
 // ===== 啟動 =====
 showTab(store.get("tab","list"));
 const holdingsReady=loadHoldings().then(setHoldings).catch(()=>{HDATA={sources:{},etfs:{},warnings:[]}});
 const liveReady=holdingsReady.then(fillClientHoldings).catch(()=>false);
 loadData().then(async d=>{
   DATA=d;ETFS=d.etfs;byCode=Object.fromEntries(ETFS.map(e=>[e.code,e]));
-  renderStatus();stats();renderList();renderPfInputs();renderPf();
+  renderStatus();stats();renderList();renderPfInputs();renderPf();renderFlow();
   await holdingsReady;
   renderStatus();renderOverlap();renderPf();refreshSheetHold();
   if(await liveReady){renderStatus();renderOverlap();renderPf();refreshSheetHold()}
