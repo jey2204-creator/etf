@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """ETF 觀察表資料更新程式。
 
-每次執行會抓取官方公開資料，輸出 data/etf.json，並把當日快照附加到 data/history.csv。
+每次執行會抓取官方公開資料，輸出 data/etf.json、data/holdings.json，並把當日快照附加到 data/history.csv。
 只用 Python 標準函式庫，不需要安裝任何套件。
 
 資料來源：
@@ -11,9 +11,11 @@
   - 集保結算所 集保戶股權分散表：受益人數（每週）
   - 證交所 / 櫃買中心 除權除息計算結果表：近一年配息
   - 證交所 / 櫃買中心 除權除息預告表：下次除息日
-  - config/etfs.json：名稱、類型、配息頻率、費率級距（手動維護）
+  - 各投信每日申購買回清單：成份股股數與權重（元大、國泰、群益、富邦、統一、凱基）
+  - config/etfs.json：名稱、類型、配息頻率、費率級距、成份股來源（手動維護）
 
 某個來源失敗時，沿用上一次成功的資料並在輸出中標記，程式最後以結束碼 2 通知排程。
+例外：設定為 client 的成份股來源（國泰會擋海外主機）由網頁端直接讀取，伺服器端失敗不算失敗。
 本機測試可設定環境變數 ETF_FIXTURES=<資料夾>，改讀資料夾內的範例檔而不連網。
 """
 from __future__ import annotations
@@ -116,6 +118,8 @@ def fetch(key: str, url: str, *, data: bytes | str | None = None, headers: dict 
                     last_err = RuntimeError(f"HTTP {e.code}（{e.headers.get('Server', '')}）{snippet[:160]}")
                 except Exception:  # noqa: BLE001
                     pass
+                if e.code in (401, 403, 404, 410):  # 伺服器明確拒絕，重試也沒用
+                    break
             time.sleep(4 * (attempt + 1))
     raise RuntimeError(f"{type(last_err).__name__}: {last_err}")
 
@@ -434,14 +438,11 @@ def pcf_yuanta(code, _id):
 
 
 def pcf_cathay(code, fund):
+    # 國泰的網站防火牆會拒絕海外主機（GitHub 的伺服器在美國），在台灣執行才會成功；
+    # 設定檔標 client: true，網頁開啟時會改由使用者的裝置直接讀取同一組 API。
     base = "https://cwapi.cathaysite.com.tw/api/ETF/"
-    page = f"https://www.cathaysite.com.tw/ETF/detail/E{fund}?tab=etf3"
     hdr = {"Accept": "application/json, text/plain, */*", "Origin": "https://www.cathaysite.com.tw",
            "Referer": "https://www.cathaysite.com.tw/", "lang": "zh_TW"}
-    try:  # 先開一次產品頁，與瀏覽器行為一致
-        fetch(f"pcf_{code}_warmup", page, tries=1)
-    except Exception:  # noqa: BLE001
-        pass
     a = fetch_json(f"pcf_{code}_assets", f"{base}GetETFAssets?FundCode={fund}&status=1", headers=hdr)
     d = ms_date((a.get("result") or {}).get("preDate"))
     if not d:
@@ -552,19 +553,27 @@ PCF_FETCHERS = {"yuanta": pcf_yuanta, "cathay": pcf_cathay, "capital": pcf_capit
 
 
 def update_holdings(etf_cfg, now) -> tuple[dict, list[str]]:
+    """抓各投信申購買回清單。回傳 (holdings, 需要通知的失敗投信)。
+
+    設定檔 pcf 標 client: true 的來源，網頁開啟時會從使用者裝置直接讀取；
+    這類來源在伺服器端失敗只記錄、不算排程失敗。"""
     prev = load_json(HOLDINGS, {})
     prev_etfs = prev.get("etfs", {})
-    sources, etfs, warnings = {}, {}, []
+    sources, etfs, warnings, hard_fail = {}, {}, [], set()
     for c in etf_cfg:
         code, pcf = c["code"], c.get("pcf") or {}
         issuer = pcf.get("issuer")
         fn = PCF_FETCHERS.get(issuer)
         if not fn:
             continue
-        src = sources.setdefault(issuer, {"name": f"{ISSUER_NAMES.get(issuer, issuer)} 申購買回清單（成份股）",
+        name = ISSUER_NAMES.get(issuer, issuer)
+        client = {"issuer": issuer, "id": pcf.get("id")} if pcf.get("client") else None
+        src = sources.setdefault(issuer, {"name": f"{name} 申購買回清單（成份股）",
                                           "ok": True, "codes": [], "as_of": None,
                                           "fetched_at": now.isoformat(timespec="seconds")})
         src["codes"].append(code)
+        if client:
+            src["client"] = True
         try:
             items, d = fn(code, pcf.get("id"))
             items = [x for x in items if x[1] and x[4] is not None]
@@ -574,23 +583,28 @@ def update_holdings(etf_cfg, now) -> tuple[dict, list[str]]:
             stock_w = sum(x[4] for x in items if x[0] == "s")
             if c.get("type") in ("市值型", "高股息", "主動式") and not 80 <= stock_w <= 105:
                 warnings.append(f"{code}：股票權重合計 {stock_w:.1f}% 不合理，請人工確認")
-            etfs[code] = {"issuer": ISSUER_NAMES.get(issuer, issuer), "date": iso(d), "stale": False,
-                          "items": items}
+            etfs[code] = {"issuer": name, "date": iso(d), "stale": False, "items": items}
             src["as_of"] = max(filter(None, [src["as_of"], iso(d)]), default=None)
             print(f"[OK]   成份股 {code}: {len(items)} 筆，{iso(d)}")
         except Exception as e:  # noqa: BLE001
             src["ok"] = False
             src["error"] = f"{code}: {str(e)[:250]}"
-            if code in prev_etfs:
-                etfs[code] = dict(prev_etfs[code], stale=True)
-            print(f"[FAIL] 成份股 {code}: {e}", file=sys.stderr)
+            old = prev_etfs.get(code)
+            etfs[code] = dict({k: v for k, v in old.items() if k != "client"}, stale=True) \
+                if old and old.get("items") else {"issuer": name, "date": None, "stale": True, "items": []}
+            if client:
+                print(f"[INFO] 成份股 {code}: 伺服器端讀不到，改由網頁端直接讀取（{str(e)[:120]}）")
+            else:
+                hard_fail.add(issuer)
+                print(f"[FAIL] 成份股 {code}: {e}", file=sys.stderr)
+        if client:
+            etfs[code]["client"] = client
     out = {"schema": 1, "generated_at": now.isoformat(timespec="seconds"),
            "fields": ["種類", "代號", "名稱", "數量", "權重%"], "sources": sources,
            "warnings": warnings, "etfs": etfs}
     HOLDINGS.parent.mkdir(parents=True, exist_ok=True)
     HOLDINGS.write_text(json.dumps(out, ensure_ascii=False, separators=(",", ":")) + "\n", encoding="utf-8")
-    failed = [k for k, s in sources.items() if not s["ok"]]
-    return out, failed
+    return out, sorted(hard_fail)
 
 
 # ---------------------------------------------------------------- 主流程
@@ -728,7 +742,6 @@ def main() -> int:
         "generated_at": now.isoformat(timespec="seconds"),
         "sources": sources,
         "warnings": warnings,
-        "holdings": "sample",
         "etfs": etfs,
     }
     OUT.parent.mkdir(parents=True, exist_ok=True)
