@@ -83,6 +83,29 @@ _OPENER = urllib.request.build_opener(
     urllib.request.HTTPSHandler(context=_CTX),
 )
 _last_host_hit: dict[str, float] = {}
+_aia_tried: set[str] = set()
+
+
+def _add_intermediate(host: str) -> bool:
+    """有些網站（例如大華銀）只送出自己的憑證、漏了中繼憑證，瀏覽器會自動補，Python 不會。
+    這裡照憑證裡的 caIssuers 網址把中繼憑證下載回來加進信任清單，仍然完整驗證憑證鏈。"""
+    if host in _aia_tried:
+        return False
+    _aia_tried.add(host)
+    import tempfile
+    pem = ssl.get_server_certificate((host, 443), timeout=20)
+    with tempfile.NamedTemporaryFile("w", suffix=".pem", delete=False) as fh:
+        fh.write(pem)
+    info = ssl._ssl._test_decode_cert(fh.name)  # noqa: SLF001（標準函式庫沒有公開的憑證解析）
+    os.unlink(fh.name)
+    added = False
+    for url in info.get("caIssuers") or ():
+        der = urllib.request.urlopen(url, timeout=20).read()  # noqa: S310（憑證機構的公開網址）
+        cadata = der.decode() if der.lstrip().startswith(b"-----") else ssl.DER_cert_to_PEM_cert(der)
+        _CTX.load_verify_locations(cadata=cadata)
+        added = True
+    print(f"[INFO] {host} 憑證缺中繼憑證，已自動補上：{added}")
+    return added
 
 
 def fetch(key: str, url: str, *, data: bytes | str | None = None, headers: dict | None = None,
@@ -113,6 +136,13 @@ def fetch(key: str, url: str, *, data: bytes | str | None = None, headers: dict 
         except Exception as e:  # noqa: BLE001
             _last_host_hit[host] = time.time()
             last_err = e
+            reason = getattr(e, "reason", e)
+            if isinstance(reason, ssl.SSLCertVerificationError) and "local issuer" in str(reason):
+                try:
+                    if _add_intermediate(host):
+                        continue
+                except Exception as e2:  # noqa: BLE001
+                    print(f"[INFO] {host} 補中繼憑證失敗：{e2}", file=sys.stderr)
             if isinstance(e, urllib.error.HTTPError):  # 記下伺服器回應的開頭，方便判斷是否被防火牆擋
                 try:
                     snippet = re.sub(r"\s+", " ", e.read(300).decode("utf-8", "replace"))
