@@ -388,6 +388,22 @@
         "issuer": "fhtrust",
         "id": "ETF21"
       }
+    },
+    {
+      "code": "00927",
+      "name": "群益半導體收益",
+      "type": "高股息",
+      "market": "TWSE",
+      "div_per_year": 4,
+      "div_note": "季配",
+      "fee": {
+        "mgmt": [],
+        "custody": [],
+        "note": "費率待查（由網頁新增，請 Claude 補上）",
+        "source": null,
+        "checked": null
+      },
+      "added": "2026-10-13"
     }
   ]
 }
