@@ -130,6 +130,17 @@ select{font:inherit;font-size:.85rem;padding:6px 10px;border-radius:8px;border:1
 .mv{all:unset;cursor:pointer;width:34px;height:34px;display:grid;place-items:center;border-radius:8px;background:var(--bg);font-size:.9rem}
 .mv:disabled{opacity:.3}
 .grip{width:30px;height:34px;display:grid;place-items:center;color:var(--muted);font-size:1.2rem;touch-action:none;cursor:grab}
+.hm.full{position:fixed;inset:0;z-index:15;max-height:none;min-height:0;border:0;border-radius:0;padding:env(safe-area-inset-top,0) env(safe-area-inset-right,0) env(safe-area-inset-bottom,0) env(safe-area-inset-left,0)}
+.hm.full table{width:100%;table-layout:fixed;font-size:var(--fs,11px)}
+.hm.full th,.hm.full td{padding:4px 2px;line-height:1.2;overflow:hidden;text-overflow:clip}
+.hm.full thead th{min-width:0;font-size:.95em}
+.hm.full tbody th{min-width:0;max-width:none;width:var(--nw,4.6em);font-size:1em;padding-left:4px}
+.hm.full thead th:first-child{width:var(--nw,4.6em)}
+.hm.full td{text-align:center}
+.fullx{position:fixed;right:max(12px,env(safe-area-inset-right,0px));bottom:max(14px,env(safe-area-inset-bottom,0px));z-index:16;border:0;border-radius:999px;padding:10px 16px;font:inherit;font-size:.9rem;background:var(--accent);color:var(--on-accent);box-shadow:0 4px 14px rgba(0,0,0,.25);cursor:pointer}
+body.isfull{overflow:hidden}
+body.isfull nav.tabs{display:none}
+.hm td,.hm tbody th{cursor:pointer}
 .empty{padding:24px;text-align:center;color:var(--muted)}
 nav.tabs{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);display:flex;justify-content:center;padding:6px 8px calc(6px + env(safe-area-inset-bottom,0px));z-index:10}
 nav.tabs .in{display:grid;grid-template-columns:repeat(4,1fr);width:100%;max-width:640px}
@@ -199,8 +210,10 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
           <select id="hmTop" aria-label="顯示幾檔股票"><option value="50">市值前 50</option><option value="100">市值前 100</option><option value="0">全部</option></select>
           <select id="hmInd" aria-label="產業"><option value="">全部產業</option></select>
           <button class="chip" id="colBtn" type="button">⚙️ 欄位順序</button>
+          <button class="chip" id="fullBtn" type="button">⛶ 全覽</button>
         </div>
         <div class="hm" id="hm"><div class="empty">成份股資料載入中…</div></div>
+        <button class="fullx" id="fullExit" type="button" hidden>✕ 結束全覽</button>
         <p class="hint" id="hmNote" style="margin:0"></p>
       </div>
       <div id="viewOv" style="display:none;flex-direction:column;gap:12px">
@@ -621,7 +634,7 @@ function renderPf(){
 }
 
 // ===== 持股對照表：Y 軸股票（市值排序）、X 軸 ETF =====
-let hmShow=store.get("hmShow","w"), hmTop=store.get("hmTop","50"), hmInd="", ovView=store.get("ovView","hm");
+let hmShow=store.get("hmShow","w"), hmTop=store.get("hmTop","50"), hmInd="", ovView=store.get("ovView","hm"), hmFull=false;
 const fmtCap=v=>v>=1e4?f(v/1e4,1)+" 兆":f(v,0)+" 億";
 const fmtLots=q=>!isNum(q)?"":q>=1e7?f(q/1e7,1)+"萬張":f(q/1e3,0)+"張";
 function hmCols(){return colOrder.filter(c=>!colHidden.includes(c)&&byCode[c]&&HOLD[c])}
@@ -647,17 +660,37 @@ function renderHm(){
   let L=hmInd?all.filter(r=>r.ind===hmInd):all;
   if(+hmTop)L=L.slice(0,+hmTop);
   const shade=w=>{const a=Math.min(Math.sqrt(Math.max(w,0)/20),1);return `background:color-mix(in srgb,var(--accent) ${Math.round(a*80)}%,var(--surface));color:${a>.6?"var(--on-accent)":"var(--fg)"}`};
-  const cell=x=>{if(!x)return '<td></td>';const w=x.w>0&&x.w<0.005?"<0.01%":f(x.w,x.w>=10?1:2)+"%",q=fmtLots(x.q);
+  const full=hmFull;
+  const cell=x=>{if(!x)return '<td></td>';
+    if(full){const v=x.w>0&&x.w<0.05?"·":f(x.w,1);return `<td style="${shade(x.w||0)}">${v}</td>`}const w=x.w>0&&x.w<0.005?"<0.01%":f(x.w,x.w>=10?1:2)+"%",q=fmtLots(x.q);
     return `<td style="${shade(x.w||0)}">${hmShow==="q"?q:hmShow==="w"?w:`${w}<small>${q}</small>`}</td>`};
-  $("hm").innerHTML=`<table><thead><tr><th>股票 · 市值</th>${cols.map(c=>`<th>${esc(c)}<small>${esc((byCode[c]||{}).name||"")}</small></th>`).join("")}<th>持有<small>檔數</small></th></tr></thead><tbody>${
-    L.map(r=>`<tr><th data-s="${esc(r.c)}"><span class="rk">${r.rank||"–"}</span>${esc(r.n)}<small>${esc(r.c)}${isNum(r.cap)?" · "+fmtCap(r.cap):""}</small></th>${cols.map(c=>cell(r.by[c])).join("")}<td class="cnt">${r.cnt}</td></tr>`).join("")
-  }</tbody></table>`||"";
+  $("hm").innerHTML=full?`<table><thead><tr><th>股票</th>${cols.map(c=>`<th>${esc(c)}</th>`).join("")}</tr></thead><tbody>${
+    L.map(r=>`<tr data-s="${esc(r.c)}"><th>${esc(r.n)}</th>${cols.map(c=>cell(r.by[c])).join("")}</tr>`).join("")}</tbody></table>`
+   :`<table><thead><tr><th>股票 · 市值</th>${cols.map(c=>`<th>${esc(c)}<small>${esc((byCode[c]||{}).name||"")}</small></th>`).join("")}<th>持有<small>檔數</small></th></tr></thead><tbody>${
+    L.map(r=>`<tr data-s="${esc(r.c)}"><th><span class="rk">${r.rank||"–"}</span>${esc(r.n)}<small>${esc(r.c)}${isNum(r.cap)?" · "+fmtCap(r.cap):""}</small></th>${cols.map(c=>cell(r.by[c])).join("")}<td class="cnt">${r.cnt}</td></tr>`).join("")
+  }</tbody></table>`;
+  fitFull(cols.length);
   if(!L.length)$("hm").innerHTML='<div class="empty">沒有符合的股票</div>';
-  $("hm").querySelectorAll("tbody th").forEach(th=>th.onclick=()=>openStock(th.dataset.s));
+  $("hm").querySelectorAll("tbody tr").forEach(tr=>tr.onclick=()=>openStock(tr.dataset.s));
   const dates=cols.map(c=>HOLD[c].date).filter(Boolean).sort();
   const pend=cols.filter(c=>HOLD[c].pending);
   $("hmNote").innerHTML=`共 ${all.length} 檔股票、${cols.length} 檔 ETF；顯示 ${L.length} 檔。排名依收盤價 × 已發行股數。張數為各 ETF 整檔基金持有量。資料日 ${dates.length?md(dates[0])+(dates[0]!==dates.at(-1)?"–"+md(dates.at(-1)):""):"—"}。點股票名稱看明細。`+(pend.length?` ${pend.join("、")} 讀取中…`:"");
 }
+function fitFull(n){
+  const el=$("hm");if(!hmFull){el.style.removeProperty("--fs");el.style.removeProperty("--nw");return}
+  const W=el.clientWidth||innerWidth, land=innerWidth>innerHeight;
+  const nameW=Math.max(48,Math.min(land?110:64,W*0.17));
+  const fs=Math.max(8,Math.min(land?15:13,(W-nameW)/Math.max(n,1)/3.3));
+  el.style.setProperty("--fs",fs.toFixed(1)+"px");el.style.setProperty("--nw",nameW.toFixed(0)+"px");
+}
+function setFull(on){
+  hmFull=on;$("hm").classList.toggle("full",on);document.body.classList.toggle("isfull",on);
+  $("fullExit").hidden=!on;$("fullBtn").setAttribute("aria-pressed",on);$("hm").scrollTop=0;$("hm").scrollLeft=0;renderHm();
+}
+$("fullBtn").onclick=()=>setFull(true);
+$("fullExit").onclick=()=>setFull(false);
+addEventListener("resize",()=>{if(hmFull)fitFull(hmCols().length)});
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&hmFull&&$("sheet").hidden)setFull(false)});
 function openStock(code){
   const cols=hmCols(), r=hmRows(cols).find(x=>x.c===code);if(!r)return;
   lastFocus=document.activeElement;sheetCode=null;
