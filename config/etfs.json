@@ -367,13 +367,27 @@
       "div_per_year": 12,
       "div_note": "月配",
       "fee": {
-        "mgmt": [],
-        "custody": [],
-        "note": "費率待查（由網頁新增，請 Claude 補上）",
-        "source": null,
-        "checked": null
+        "mgmt": [
+          [
+            null,
+            0.3
+          ]
+        ],
+        "custody": [
+          [
+            null,
+            0.03
+          ]
+        ],
+        "note": "經理費 0.30%、保管費 0.03%（規模 50 億以上級距，目前規模適用；較低級距來源未列）",
+        "source": "https://www.businessweekly.com.tw/business/blog/3014783",
+        "checked": "2026-10-13"
       },
-      "added": "2026-10-13"
+      "added": "2026-10-13",
+      "pcf": {
+        "issuer": "fhtrust",
+        "id": "ETF21"
+      }
     }
   ]
 }
