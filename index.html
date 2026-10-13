@@ -133,7 +133,7 @@ select{font:inherit;font-size:.85rem;padding:6px 10px;border-radius:8px;border:1
 .hm.full{position:fixed;inset:0;z-index:15;max-height:none;min-height:0;border:0;border-radius:0;padding:env(safe-area-inset-top,0) env(safe-area-inset-right,0) env(safe-area-inset-bottom,0) env(safe-area-inset-left,0)}
 .hm.full table{width:100%;table-layout:fixed;font-size:var(--fs,11px)}
 .hm.full th,.hm.full td{padding:4px 2px;line-height:1.2;overflow:hidden;text-overflow:clip}
-.hm.full thead th{min-width:0;font-size:.95em}
+.hm.full thead th{min-width:0;font-size:.8em;letter-spacing:-.03em;padding:6px 0}
 .hm.full tbody th{min-width:0;max-width:none;width:var(--nw,4.6em);font-size:1em;padding-left:4px}
 .hm.full thead th:first-child{width:var(--nw,4.6em)}
 .hm.full td{text-align:center}
@@ -662,7 +662,7 @@ function renderHm(){
   const shade=w=>{const a=Math.min(Math.sqrt(Math.max(w,0)/20),1);return `background:color-mix(in srgb,var(--accent) ${Math.round(a*80)}%,var(--surface));color:${a>.6?"var(--on-accent)":"var(--fg)"}`};
   const full=hmFull;
   const cell=x=>{if(!x)return '<td></td>';
-    if(full){const v=x.w>0&&x.w<0.05?"·":f(x.w,1);return `<td style="${shade(x.w||0)}">${v}</td>`}const w=x.w>0&&x.w<0.005?"<0.01%":f(x.w,x.w>=10?1:2)+"%",q=fmtLots(x.q);
+    if(full){const v=!(x.w>=0.05)?"·":f(x.w,1);return `<td style="${shade(x.w||0)}">${v}</td>`}const w=x.w>0&&x.w<0.005?"<0.01%":f(x.w,x.w>=10?1:2)+"%",q=fmtLots(x.q);
     return `<td style="${shade(x.w||0)}">${hmShow==="q"?q:hmShow==="w"?w:`${w}<small>${q}</small>`}</td>`};
   $("hm").innerHTML=full?`<table><thead><tr><th>股票</th>${cols.map(c=>`<th>${esc(c)}</th>`).join("")}</tr></thead><tbody>${
     L.map(r=>`<tr data-s="${esc(r.c)}"><th>${esc(r.n)}</th>${cols.map(c=>cell(r.by[c])).join("")}</tr>`).join("")}</tbody></table>`
