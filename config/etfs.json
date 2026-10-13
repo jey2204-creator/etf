@@ -397,11 +397,21 @@
       "div_per_year": 4,
       "div_note": "季配",
       "fee": {
-        "mgmt": [],
-        "custody": [],
-        "note": "費率待查（由網頁新增，請 Claude 補上）",
-        "source": null,
-        "checked": null
+        "mgmt": [
+          [
+            null,
+            0.4
+          ]
+        ],
+        "custody": [
+          [
+            null,
+            0.035
+          ]
+        ],
+        "note": "經理費 0.40%、保管費 0.035%（來源未列級距）",
+        "source": "https://www.wantgoo.com/stock/etf/00927/profile",
+        "checked": "2026-10-13"
       },
       "added": "2026-10-13"
     },
@@ -413,11 +423,21 @@
       "div_per_year": 0,
       "div_note": "不配息",
       "fee": {
-        "mgmt": [],
-        "custody": [],
-        "note": "費率待查（由網頁新增，請 Claude 補上）",
-        "source": null,
-        "checked": null
+        "mgmt": [
+          [
+            null,
+            0.9
+          ]
+        ],
+        "custody": [
+          [
+            null,
+            0.2
+          ]
+        ],
+        "note": "經理費 0.90%、保管費 0.20%（來源未列級距）",
+        "source": "https://www.stockfeel.com.tw/?p=152571",
+        "checked": "2026-10-13"
       },
       "added": "2026-10-13"
     },
@@ -429,11 +449,21 @@
       "div_per_year": 0,
       "div_note": "不配息",
       "fee": {
-        "mgmt": [],
-        "custody": [],
-        "note": "費率待查（由網頁新增，請 Claude 補上）",
-        "source": null,
-        "checked": null
+        "mgmt": [
+          [
+            null,
+            0.75
+          ]
+        ],
+        "custody": [
+          [
+            null,
+            0.1
+          ]
+        ],
+        "note": "經理費 0.75%、保管費 0.10%（單一費率）",
+        "source": "https://www.bnext.com.tw/article/91889/009828-pcb-etf",
+        "checked": "2026-10-13"
       },
       "added": "2026-10-13"
     },
@@ -445,11 +475,21 @@
       "div_per_year": 0,
       "div_note": "不配息",
       "fee": {
-        "mgmt": [],
-        "custody": [],
-        "note": "費率待查（由網頁新增，請 Claude 補上）",
-        "source": null,
-        "checked": null
+        "mgmt": [
+          [
+            null,
+            0.99
+          ]
+        ],
+        "custody": [
+          [
+            null,
+            0.23
+          ]
+        ],
+        "note": "經理費 0.99%、保管費 0.23%（來源未列級距）",
+        "source": "https://www.stockfeel.com.tw/?p=142588",
+        "checked": "2026-10-13"
       },
       "added": "2026-10-13",
       "pcf": {
@@ -461,14 +501,28 @@
       "name": "台新美國電力基建息收",
       "type": "海外",
       "market": "TWSE",
-      "div_per_year": 1,
-      "div_note": "年配",
+      "div_per_year": 4,
+      "div_note": "季配",
       "fee": {
-        "mgmt": [],
-        "custody": [],
-        "note": "費率待查（由網頁新增，請 Claude 補上）",
-        "source": null,
-        "checked": null
+        "mgmt": [
+          [
+            null,
+            0.68
+          ]
+        ],
+        "custody": [
+          [
+            50,
+            0.16
+          ],
+          [
+            null,
+            0.15
+          ]
+        ],
+        "note": "經理費 0.68%；保管費 50億以下 0.16%、超過部分 0.15%",
+        "source": "https://www.stockfeel.com.tw/?p=251831",
+        "checked": "2026-10-13"
       },
       "added": "2026-10-13"
     },
@@ -480,11 +534,21 @@
       "div_per_year": 0,
       "div_note": "不配息",
       "fee": {
-        "mgmt": [],
-        "custody": [],
-        "note": "費率待查（由網頁新增，請 Claude 補上）",
-        "source": null,
-        "checked": null
+        "mgmt": [
+          [
+            null,
+            0.9
+          ]
+        ],
+        "custody": [
+          [
+            null,
+            0.23
+          ]
+        ],
+        "note": "經理費 0.90%、保管費 0.23%",
+        "source": "https://www.yuantaetfs.com/product/detail/00876/Basic_information",
+        "checked": "2026-10-13"
       },
       "added": "2026-10-13",
       "pcf": {
@@ -499,11 +563,33 @@
       "div_per_year": 0,
       "div_note": "不配息",
       "fee": {
-        "mgmt": [],
-        "custody": [],
-        "note": "費率待查（由網頁新增，請 Claude 補上）",
-        "source": null,
-        "checked": null
+        "mgmt": [
+          [
+            150,
+            0.45
+          ],
+          [
+            null,
+            0.4
+          ]
+        ],
+        "custody": [
+          [
+            50,
+            0.15
+          ],
+          [
+            100,
+            0.12
+          ],
+          [
+            null,
+            0.1
+          ]
+        ],
+        "note": "經理費 150億以下 0.45%、超過部分 0.40%；保管費 50億以下 0.15%、50–100億 0.12%、100億以上 0.10%",
+        "source": "https://www.businesstoday.com.tw/article/category/183013/post/202607140024/",
+        "checked": "2026-10-13"
       },
       "added": "2026-10-13"
     },
@@ -515,11 +601,21 @@
       "div_per_year": 0,
       "div_note": "不配息",
       "fee": {
-        "mgmt": [],
-        "custody": [],
-        "note": "費率待查（由網頁新增，請 Claude 補上）",
-        "source": null,
-        "checked": null
+        "mgmt": [
+          [
+            null,
+            0.9
+          ]
+        ],
+        "custody": [
+          [
+            null,
+            0.26
+          ]
+        ],
+        "note": "經理費 0.90%、保管費 0.26%",
+        "source": "https://www.yuantaetfs.com/product/detail/00762/Basic_information",
+        "checked": "2026-10-13"
       },
       "added": "2026-10-13",
       "pcf": {
@@ -531,14 +627,32 @@
       "name": "大華韓國KOSPI 50",
       "type": "海外",
       "market": "TWSE",
-      "div_per_year": 0,
-      "div_note": "不配息",
+      "div_per_year": 2,
+      "div_note": "半年配（掛牌未滿一年，尚未配息）",
       "fee": {
-        "mgmt": [],
-        "custody": [],
-        "note": "費率待查（由網頁新增，請 Claude 補上）",
-        "source": null,
-        "checked": null
+        "mgmt": [
+          [
+            null,
+            0.3
+          ]
+        ],
+        "custody": [
+          [
+            50,
+            0.14
+          ],
+          [
+            100,
+            0.12
+          ],
+          [
+            null,
+            0.1
+          ]
+        ],
+        "note": "經理費 0.30%；保管費 50億以下 0.14%、50–100億 0.12%、100億以上 0.10%",
+        "source": "https://www.stockfeel.com.tw/?p=274688",
+        "checked": "2026-10-13"
       },
       "added": "2026-10-13"
     }
