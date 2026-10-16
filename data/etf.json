@@ -1,55 +1,54 @@
 {
  "schema": 1,
- "generated_at": "2026-10-16T19:37:19+08:00",
+ "generated_at": "2026-10-16T22:14:33+08:00",
  "sources": {
   "mis": {
    "name": "證交所 MIS（市價、淨值、單位數）",
    "ok": true,
    "as_of": "2026-10-16",
-   "fetched_at": "2026-10-16T19:37:19+08:00"
+   "fetched_at": "2026-10-16T22:14:33+08:00"
   },
   "twse_quotes": {
    "name": "證交所 每日收盤行情（上市成交量）",
    "ok": true,
    "as_of": "2026-10-16",
-   "fetched_at": "2026-10-16T19:37:19+08:00"
+   "fetched_at": "2026-10-16T22:14:33+08:00"
   },
   "tpex_quotes": {
    "name": "櫃買中心 上櫃行情（上櫃成交量）",
-   "ok": false,
-   "as_of": "2026-10-15",
-   "fetched_at": "2026-10-15T22:24:17+08:00",
-   "error": "IncompleteRead: IncompleteRead(622185 bytes read, 4297545 more expected)"
+   "ok": true,
+   "as_of": "2026-10-16",
+   "fetched_at": "2026-10-16T22:14:33+08:00"
   },
   "tdcc": {
    "name": "集保 股權分散表（受益人數）",
    "ok": true,
    "as_of": "2026-10-08",
-   "fetched_at": "2026-10-16T19:37:19+08:00"
+   "fetched_at": "2026-10-16T22:14:33+08:00"
   },
   "twse_div": {
    "name": "證交所 除權息結果（配息）",
    "ok": true,
    "as_of": "2026-10-16",
-   "fetched_at": "2026-10-16T19:37:19+08:00"
+   "fetched_at": "2026-10-16T22:14:33+08:00"
   },
   "tpex_div": {
    "name": "櫃買 除權息結果（配息）",
    "ok": true,
    "as_of": "2026-10-16",
-   "fetched_at": "2026-10-16T19:37:19+08:00"
+   "fetched_at": "2026-10-16T22:14:33+08:00"
   },
   "twse_pre": {
    "name": "證交所 除權息預告",
    "ok": true,
    "as_of": null,
-   "fetched_at": "2026-10-16T19:37:19+08:00"
+   "fetched_at": "2026-10-16T22:14:33+08:00"
   },
   "tpex_pre": {
    "name": "櫃買 除權息預告",
    "ok": true,
    "as_of": null,
-   "fetched_at": "2026-10-16T19:37:19+08:00"
+   "fetched_at": "2026-10-16T22:14:33+08:00"
   }
  },
  "warnings": [],
@@ -910,8 +909,8 @@
    "quote_time": "17:00:00",
    "prem": 0.22,
    "aum": 2434.44,
-   "volume": 136826,
-   "volume_date": "2026-10-15",
+   "volume": 65650,
+   "volume_date": "2026-10-16",
    "holders": 210846,
    "holders_units": 17361805000.0,
    "holders_date": "2026-10-08",
@@ -2373,8 +2372,8 @@
    "quote_time": "17:00:01",
    "prem": 0.275,
    "aum": 1099.27,
-   "volume": 5716,
-   "volume_date": "2026-10-15",
+   "volume": 4254,
+   "volume_date": "2026-10-16",
    "holders": 40373,
    "holders_units": 3376790000.0,
    "holders_date": "2026-10-08",
