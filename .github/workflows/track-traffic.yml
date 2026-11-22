@@ -1,0 +1,50 @@
+name: Track traffic
+
+on:
+  schedule:
+    - cron: '0 1 * * *'   # 每天台灣時間 09:00
+  workflow_dispatch:       # 允許手動執行
+
+permissions:
+  contents: write
+
+concurrency:
+  group: track-traffic
+  cancel-in-progress: false
+
+jobs:
+  track:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install matplotlib
+        run: pip install matplotlib
+
+      - name: Fetch traffic
+        env:
+          GH_TOKEN: ${{ secrets.TRAFFIC_TOKEN }}
+        run: |
+          gh api repos/${{ github.repository }}/traffic/clones > /tmp/clones_new.json
+          gh api repos/${{ github.repository }}/traffic/views  > /tmp/views_new.json
+
+      - name: Merge & draw chart
+        run: python3 .github/scripts/traffic.py /tmp/clones_new.json /tmp/views_new.json
+
+      - name: Commit
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+          git add traffic/
+          git diff --cached --quiet && exit 0
+          git commit -m "Update traffic stats [skip ci]"
+          # 其他排程也會 push，衝突時先 rebase 再重試
+          for i in 1 2 3; do
+            git pull --rebase origin ${{ github.ref_name }} && git push && exit 0
+            sleep $((i * 10))
+          done
+          exit 1
