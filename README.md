@@ -50,3 +50,7 @@ GitHub Actions（`.github/workflows/update.yml`）每個交易日台灣時間 14
 - `scripts/update.py`：資料更新程式（只用 Python 標準函式庫）
 - `config/etfs.json`：手動維護的欄位
 - `data/`：自動產生的資料，不要手動修改
+
+## 📊 Traffic
+
+![Traffic](traffic/chart.png)
