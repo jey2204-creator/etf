@@ -1,54 +1,54 @@
 {
  "schema": 1,
- "generated_at": "2026-11-21T01:59:51+08:00",
+ "generated_at": "2026-11-24T02:29:51+08:00",
  "sources": {
   "mis": {
    "name": "證交所 MIS（市價、淨值、單位數）",
    "ok": true,
-   "as_of": "2026-11-20",
-   "fetched_at": "2026-11-21T01:59:51+08:00"
+   "as_of": "2026-11-23",
+   "fetched_at": "2026-11-24T02:29:51+08:00"
   },
   "twse_quotes": {
    "name": "證交所 每日收盤行情（上市成交量）",
    "ok": true,
-   "as_of": "2026-11-20",
-   "fetched_at": "2026-11-21T01:59:51+08:00"
+   "as_of": "2026-11-23",
+   "fetched_at": "2026-11-24T02:29:51+08:00"
   },
   "tpex_quotes": {
    "name": "櫃買中心 上櫃行情（上櫃成交量）",
    "ok": true,
-   "as_of": "2026-11-20",
-   "fetched_at": "2026-11-21T01:59:51+08:00"
+   "as_of": "2026-11-23",
+   "fetched_at": "2026-11-24T02:29:51+08:00"
   },
   "tdcc": {
    "name": "集保 股權分散表（受益人數）",
    "ok": true,
-   "as_of": "2026-11-13",
-   "fetched_at": "2026-11-21T01:59:51+08:00"
+   "as_of": "2026-11-20",
+   "fetched_at": "2026-11-24T02:29:51+08:00"
   },
   "twse_div": {
    "name": "證交所 除權息結果（配息）",
    "ok": true,
-   "as_of": "2026-11-21",
-   "fetched_at": "2026-11-21T01:59:51+08:00"
+   "as_of": "2026-11-24",
+   "fetched_at": "2026-11-24T02:29:51+08:00"
   },
   "tpex_div": {
    "name": "櫃買 除權息結果（配息）",
    "ok": true,
-   "as_of": "2026-11-21",
-   "fetched_at": "2026-11-21T01:59:51+08:00"
+   "as_of": "2026-11-24",
+   "fetched_at": "2026-11-24T02:29:51+08:00"
   },
   "twse_pre": {
    "name": "證交所 除權息預告",
    "ok": true,
    "as_of": null,
-   "fetched_at": "2026-11-21T01:59:51+08:00"
+   "fetched_at": "2026-11-24T02:29:51+08:00"
   },
   "tpex_pre": {
    "name": "櫃買 除權息預告",
    "ok": true,
    "as_of": null,
-   "fetched_at": "2026-11-21T01:59:51+08:00"
+   "fetched_at": "2026-11-24T02:29:51+08:00"
   }
  },
  "warnings": [],
@@ -59,25 +59,25 @@
    "type": "市值型",
    "market": "上市",
    "mis_name": "元大台灣50",
-   "price": 84.45,
-   "nav": 84.68,
-   "prem_src": -0.27,
-   "prev_nav": 90.05,
-   "units": 26180500000.0,
-   "units_chg": 421500000.0,
-   "quote_date": "2026-11-20",
+   "price": 87.0,
+   "nav": 86.58,
+   "prem_src": 0.49,
+   "prev_nav": 84.67,
+   "units": 26407000000.0,
+   "units_chg": 226500000.0,
+   "quote_date": "2026-11-23",
    "quote_time": "13:31:00",
-   "prem": -0.272,
-   "aum": 22169.65,
-   "volume": 874056,
-   "volume_date": "2026-11-20",
-   "holders": 3956621,
-   "holders_units": 25042000000.0,
-   "holders_date": "2026-11-13",
+   "prem": 0.485,
+   "aum": 22863.18,
+   "volume": 510652,
+   "volume_date": "2026-11-23",
+   "holders": 4038137,
+   "holders_units": 25531000000.0,
+   "holders_date": "2026-11-20",
    "fee": {
-    "mgmt": 0.0703,
-    "custody": 0.0273,
-    "total": 0.0976,
+    "mgmt": 0.0697,
+    "custody": 0.0272,
+    "total": 0.0969,
     "tiered": true,
     "note": "經理費：1,000億以下 0.15%、1,000–5,000億 0.10%、5,000億–1兆 0.08%、1兆以上 0.05%；保管費 1兆以下 0.03%、以上 0.025%",
     "source": "https://technews.tw/?p=1336386",
@@ -88,7 +88,7 @@
     "freq": "半年配",
     "ttm": 1.6,
     "count": 2,
-    "yield": 1.89,
+    "yield": 1.84,
     "last": {
      "date": "2026-07-21",
      "amount": 0.6
@@ -96,20 +96,15 @@
     "next": null
    },
    "flow": {
-    "date": "2026-11-13",
-    "holders_w1": 82612,
-    "holders_w4": 278725,
-    "holders_w13": 422308,
-    "holders_w4_pct": 7.58,
-    "flow_w1": 1083.66,
-    "flow_w4": 2612.01,
-    "flow_w13": 2651.37,
+    "date": "2026-11-20",
+    "holders_w1": 81516,
+    "holders_w4": 317723,
+    "holders_w13": 488217,
+    "holders_w4_pct": 8.54,
+    "flow_w1": 414.09,
+    "flow_w4": 2380.19,
+    "flow_w13": 3169.22,
     "weeks": [
-     [
-      "2026-08-21",
-      15607,
-      -103.76
-     ],
      [
       "2026-08-28",
       -6089,
@@ -169,6 +164,11 @@
       "2026-11-13",
       82612,
       1083.66
+     ],
+     [
+      "2026-11-20",
+      81516,
+      414.09
      ]
     ]
    }
@@ -179,21 +179,21 @@
    "type": "高股息",
    "market": "上市",
    "mis_name": "元大高股息",
-   "price": 44.31,
-   "nav": 44.43,
-   "prem_src": -0.27,
-   "prev_nav": 47.34,
-   "units": 15493034000.0,
-   "units_chg": 61000000.0,
-   "quote_date": "2026-11-20",
+   "price": 45.4,
+   "nav": 45.02,
+   "prem_src": 0.84,
+   "prev_nav": 44.43,
+   "units": 15516034000.0,
+   "units_chg": 23000000.0,
+   "quote_date": "2026-11-23",
    "quote_time": "13:31:00",
-   "prem": -0.27,
-   "aum": 6883.56,
-   "volume": 188190,
-   "volume_date": "2026-11-20",
-   "holders": 1793935,
-   "holders_units": 15202034000.0,
-   "holders_date": "2026-11-13",
+   "prem": 0.844,
+   "aum": 6985.32,
+   "volume": 106880,
+   "volume_date": "2026-11-23",
+   "holders": 1815090,
+   "holders_units": 15350534000.0,
+   "holders_date": "2026-11-20",
    "fee": {
     "mgmt": 0.3026,
     "custody": 0.035,
@@ -208,7 +208,7 @@
     "freq": "季配",
     "ttm": 4.936,
     "count": 4,
-    "yield": 11.14,
+    "yield": 10.87,
     "last": {
      "date": "2026-10-22",
      "amount": 1.72
@@ -216,20 +216,15 @@
     "next": null
    },
    "flow": {
-    "date": "2026-11-13",
-    "holders_w1": 17342,
-    "holders_w4": 77968,
-    "holders_w13": 139838,
-    "holders_w4_pct": 4.54,
-    "flow_w1": 91.83,
-    "flow_w4": 459.3,
-    "flow_w13": 507.29,
+    "date": "2026-11-20",
+    "holders_w1": 21155,
+    "holders_w4": 73858,
+    "holders_w13": 157253,
+    "holders_w4_pct": 4.24,
+    "flow_w1": 65.98,
+    "flow_w4": 326.75,
+    "flow_w13": 627.69,
     "weeks": [
-     [
-      "2026-08-21",
-      3740,
-      -54.42
-     ],
      [
       "2026-08-28",
       -1799,
@@ -289,6 +284,11 @@
       "2026-11-13",
       17342,
       91.83
+     ],
+     [
+      "2026-11-20",
+      21155,
+      65.98
      ]
     ]
    }
@@ -299,21 +299,21 @@
    "type": "高股息",
    "market": "上市",
    "mis_name": "國泰永續高股息(基金之配息來源可能為收益平準金且並無保證收益及配息)",
-   "price": 28.03,
-   "nav": 27.98,
-   "prem_src": 0.18,
-   "prev_nav": 29.73,
-   "units": 20145790000.0,
-   "units_chg": 40000000.0,
-   "quote_date": "2026-11-20",
-   "quote_time": "16:59:47",
-   "prem": 0.179,
-   "aum": 5636.79,
-   "volume": 174330,
-   "volume_date": "2026-11-20",
-   "holders": 1774723,
-   "holders_units": 19773290000.0,
-   "holders_date": "2026-11-13",
+   "price": 28.05,
+   "nav": 27.97,
+   "prem_src": 0.29,
+   "prev_nav": 27.98,
+   "units": 20180790000.0,
+   "units_chg": 35000000.0,
+   "quote_date": "2026-11-23",
+   "quote_time": "16:59:53",
+   "prem": 0.286,
+   "aum": 5644.57,
+   "volume": 107900,
+   "volume_date": "2026-11-23",
+   "holders": 1805822,
+   "holders_units": 20105790000.0,
+   "holders_date": "2026-11-20",
    "fee": {
     "mgmt": 0.25,
     "custody": 0.03,
@@ -328,7 +328,7 @@
     "freq": "季配",
     "ttm": 3.34,
     "count": 4,
-    "yield": 11.92,
+    "yield": 11.91,
     "last": {
      "date": "2026-11-17",
      "amount": 1.25
@@ -336,20 +336,15 @@
     "next": null
    },
    "flow": {
-    "date": "2026-11-13",
-    "holders_w1": 26503,
-    "holders_w4": 76954,
-    "holders_w13": 131362,
-    "holders_w4_pct": 4.53,
-    "flow_w1": 122.81,
-    "flow_w4": 287.34,
-    "flow_w13": 397.58,
+    "date": "2026-11-20",
+    "holders_w1": 31099,
+    "holders_w4": 99008,
+    "holders_w13": 134225,
+    "holders_w4_pct": 5.8,
+    "flow_w1": 93.03,
+    "flow_w4": 354.85,
+    "flow_w13": 407.88,
     "weeks": [
-     [
-      "2026-08-21",
-      28236,
-      82.73
-     ],
      [
       "2026-08-28",
       16,
@@ -409,6 +404,11 @@
       "2026-11-13",
       26503,
       122.81
+     ],
+     [
+      "2026-11-20",
+      31099,
+      93.03
      ]
     ]
    }
@@ -419,21 +419,21 @@
    "type": "高股息",
    "market": "上市",
    "mis_name": "群益台灣精選高息",
-   "price": 27.49,
-   "nav": 27.44,
-   "prem_src": 0.18,
-   "prev_nav": 29.16,
-   "units": 19636635000.0,
-   "units_chg": 32500000.0,
-   "quote_date": "2026-11-20",
+   "price": 27.12,
+   "nav": 27.04,
+   "prem_src": 0.3,
+   "prev_nav": 27.44,
+   "units": 19665635000.0,
+   "units_chg": 29000000.0,
+   "quote_date": "2026-11-23",
    "quote_time": "15:00:00",
-   "prem": 0.182,
-   "aum": 5388.29,
-   "volume": 211228,
-   "volume_date": "2026-11-20",
-   "holders": 1523591,
-   "holders_units": 19522135000.0,
-   "holders_date": "2026-11-13",
+   "prem": 0.296,
+   "aum": 5317.59,
+   "volume": 184735,
+   "volume_date": "2026-11-23",
+   "holders": 1534159,
+   "holders_units": 19604135000.0,
+   "holders_date": "2026-11-20",
    "fee": {
     "mgmt": 0.3,
     "custody": 0.035,
@@ -448,7 +448,7 @@
     "freq": "季配",
     "ttm": 3.42,
     "count": 4,
-    "yield": 12.44,
+    "yield": 12.61,
     "last": {
      "date": "2026-09-16",
      "amount": 1.1
@@ -456,20 +456,15 @@
     "next": null
    },
    "flow": {
-    "date": "2026-11-13",
-    "holders_w1": 14409,
-    "holders_w4": 28026,
-    "holders_w13": 146391,
-    "holders_w4_pct": 1.87,
-    "flow_w1": 31.2,
-    "flow_w4": 39.18,
-    "flow_w13": 428.41,
+    "date": "2026-11-20",
+    "holders_w1": 10568,
+    "holders_w4": 33609,
+    "holders_w13": 153510,
+    "holders_w4_pct": 2.24,
+    "flow_w1": 22.5,
+    "flow_w4": 61.68,
+    "flow_w13": 455.08,
     "weeks": [
-     [
-      "2026-08-21",
-      3449,
-      -4.17
-     ],
      [
       "2026-08-28",
       -5355,
@@ -529,6 +524,11 @@
       "2026-11-13",
       14409,
       31.2
+     ],
+     [
+      "2026-11-20",
+      10568,
+      22.5
      ]
     ]
    }
@@ -539,25 +539,25 @@
    "type": "市值型",
    "market": "上市",
    "mis_name": "富邦台50",
-   "price": 189.8,
-   "nav": 190.52,
-   "prem_src": -0.38,
-   "prev_nav": 202.61,
-   "units": 1953040000.0,
-   "units_chg": 2500000.0,
-   "quote_date": "2026-11-20",
+   "price": 195.55,
+   "nav": 194.8,
+   "prem_src": 0.39,
+   "prev_nav": 190.51,
+   "units": 1954540000.0,
+   "units_chg": 1500000.0,
+   "quote_date": "2026-11-23",
    "quote_time": "17:05:00",
-   "prem": -0.378,
-   "aum": 3720.93,
-   "volume": 19076,
-   "volume_date": "2026-11-20",
-   "holders": 749943,
-   "holders_units": 1934040000.0,
-   "holders_date": "2026-11-13",
+   "prem": 0.385,
+   "aum": 3807.44,
+   "volume": 10311,
+   "volume_date": "2026-11-23",
+   "holders": 758971,
+   "holders_units": 1950540000.0,
+   "holders_date": "2026-11-20",
    "fee": {
-    "mgmt": 0.1134,
+    "mgmt": 0.1131,
     "custody": 0.03,
-    "total": 0.1434,
+    "total": 0.1431,
     "tiered": true,
     "note": "經理費：1,000億以下 0.15%、1,000–5,000億 0.10%、5,000億–1兆 0.08%、1兆以上 0.05%；保管費 1兆以下 0.03%、以上 0.025%",
     "source": "https://technews.tw/?p=1403153",
@@ -568,7 +568,7 @@
     "freq": "半年配",
     "ttm": 8.63,
     "count": 2,
-    "yield": 4.55,
+    "yield": 4.41,
     "last": {
      "date": "2026-11-17",
      "amount": 3.88
@@ -576,20 +576,15 @@
     "next": null
    },
    "flow": {
-    "date": "2026-11-13",
-    "holders_w1": 7234,
-    "holders_w4": 32781,
-    "holders_w13": 37857,
-    "holders_w4_pct": 4.57,
-    "flow_w1": 52.72,
-    "flow_w4": 162.03,
-    "flow_w13": 169.49,
+    "date": "2026-11-20",
+    "holders_w1": 9028,
+    "holders_w4": 40231,
+    "holders_w13": 45417,
+    "holders_w4_pct": 5.6,
+    "flow_w1": 31.44,
+    "flow_w4": 161.78,
+    "flow_w13": 200.93,
     "weeks": [
-     [
-      "2026-08-21",
-      1468,
-      0.0
-     ],
      [
       "2026-08-28",
       208,
@@ -649,6 +644,11 @@
       "2026-11-13",
       7234,
       52.72
+     ],
+     [
+      "2026-11-20",
+      9028,
+      31.44
      ]
     ]
    }
@@ -659,25 +659,25 @@
    "type": "主動式",
    "market": "上市",
    "mis_name": "主動統一台股增長",
-   "price": 18.58,
-   "nav": 18.81,
-   "prem_src": -1.22,
-   "prev_nav": 20.45,
-   "units": 11349209000.0,
-   "units_chg": 21000000.0,
-   "quote_date": "2026-11-20",
-   "quote_time": "16:59:58",
-   "prem": -1.223,
-   "aum": 2134.79,
-   "volume": 444410,
-   "volume_date": "2026-11-20",
-   "holders": 1010132,
-   "holders_units": 11171209000.0,
-   "holders_date": "2026-11-13",
+   "price": 20.04,
+   "nav": 19.73,
+   "prem_src": 1.57,
+   "prev_nav": 18.81,
+   "units": 11261209000.0,
+   "units_chg": -88000000.0,
+   "quote_date": "2026-11-23",
+   "quote_time": "16:59:57",
+   "prem": 1.571,
+   "aum": 2221.84,
+   "volume": 510556,
+   "volume_date": "2026-11-23",
+   "holders": 1024224,
+   "holders_units": 11328209000.0,
+   "holders_date": "2026-11-20",
    "fee": {
-    "mgmt": 1.0187,
-    "custody": 0.1019,
-    "total": 1.1206,
+    "mgmt": 1.018,
+    "custody": 0.1018,
+    "total": 1.1198,
     "tiered": true,
     "note": "經理費：200億以下 1.2%、超過部分 1.0%；保管費：200億以下 0.12%、超過部分 0.10%",
     "source": "https://school.gugu.fund/blog/ETF/6020135449",
@@ -688,7 +688,7 @@
     "freq": "季配",
     "ttm": 1.67,
     "count": 3,
-    "yield": 8.99,
+    "yield": 8.33,
     "last": {
      "date": "2026-09-16",
      "amount": 0.63
@@ -696,20 +696,15 @@
     "next": null
    },
    "flow": {
-    "date": "2026-11-13",
-    "holders_w1": 7745,
-    "holders_w4": 70237,
-    "holders_w13": 19717,
-    "holders_w4_pct": 7.47,
-    "flow_w1": 196.34,
-    "flow_w4": 518.16,
-    "flow_w13": 112.18,
+    "date": "2026-11-20",
+    "holders_w1": 14092,
+    "holders_w4": 70351,
+    "holders_w13": 41278,
+    "holders_w4_pct": 7.38,
+    "flow_w1": 29.53,
+    "flow_w4": 447.6,
+    "flow_w13": 319.53,
     "weeks": [
-     [
-      "2026-08-21",
-      -7469,
-      -177.82
-     ],
      [
       "2026-08-28",
       150,
@@ -769,6 +764,11 @@
       "2026-11-13",
       7745,
       196.34
+     ],
+     [
+      "2026-11-20",
+      14092,
+      29.53
      ]
     ]
    }
@@ -779,21 +779,21 @@
    "type": "槓桿",
    "market": "上市",
    "mis_name": "元大台灣50正2",
-   "price": 21.24,
-   "nav": 21.29,
-   "prem_src": -0.23,
-   "prev_nav": 24.62,
-   "units": 10852848000.0,
-   "units_chg": 340500000.0,
-   "quote_date": "2026-11-20",
+   "price": 22.5,
+   "nav": 22.23,
+   "prem_src": 1.21,
+   "prev_nav": 21.3,
+   "units": 11166848000.0,
+   "units_chg": 314000000.0,
+   "quote_date": "2026-11-23",
    "quote_time": "13:31:00",
-   "prem": -0.235,
-   "aum": 2310.57,
-   "volume": 1300766,
-   "volume_date": "2026-11-20",
-   "holders": 393565,
-   "holders_units": 9793348000.0,
-   "holders_date": "2026-11-13",
+   "prem": 1.215,
+   "aum": 2482.39,
+   "volume": 1170375,
+   "volume_date": "2026-11-23",
+   "holders": 418507,
+   "holders_units": 10263880000.0,
+   "holders_date": "2026-11-20",
    "fee": {
     "mgmt": 1.0,
     "custody": 0.04,
@@ -813,20 +813,15 @@
     "next": null
    },
    "flow": {
-    "date": "2026-11-13",
-    "holders_w1": 2970,
-    "holders_w4": 61446,
-    "holders_w13": 64369,
-    "holders_w4_pct": 18.5,
-    "flow_w1": 303.53,
-    "flow_w4": 880.44,
-    "flow_w13": 574.11,
+    "date": "2026-11-20",
+    "holders_w1": 24942,
+    "holders_w4": 69725,
+    "holders_w13": 88524,
+    "holders_w4_pct": 19.99,
+    "flow_w1": 100.18,
+    "flow_w4": 699.26,
+    "flow_w13": 768.1,
     "weeks": [
-     [
-      "2026-08-21",
-      787,
-      -93.81
-     ],
      [
       "2026-08-28",
       -11259,
@@ -886,6 +881,11 @@
       "2026-11-13",
       2970,
       303.53
+     ],
+     [
+      "2026-11-20",
+      24942,
+      100.18
      ]
     ]
    }
@@ -896,25 +896,25 @@
    "type": "債券",
    "market": "上櫃",
    "mis_name": "群益ESG投等債20+",
-   "price": 14.17,
-   "nav": 14.1919,
-   "prem_src": -0.15,
-   "prev_nav": 14.2092,
-   "units": 16277805000.0,
-   "units_chg": -27000000.0,
-   "quote_date": "2026-11-20",
+   "price": 14.2,
+   "nav": 14.2306,
+   "prem_src": -0.22,
+   "prev_nav": 14.2575,
+   "units": 16226805000.0,
+   "units_chg": -51000000.0,
+   "quote_date": "2026-11-23",
    "quote_time": "17:00:00",
-   "prem": -0.154,
-   "aum": 2310.13,
-   "volume": 108699,
-   "volume_date": "2026-11-20",
-   "holders": 199167,
-   "holders_units": 16334305000.0,
-   "holders_date": "2026-11-13",
+   "prem": -0.215,
+   "aum": 2309.17,
+   "volume": 68499,
+   "volume_date": "2026-11-23",
+   "holders": 198232,
+   "holders_units": 16304805000.0,
+   "holders_date": "2026-11-20",
    "fee": {
     "mgmt": 0.21,
     "custody": 0.0533,
-    "total": 0.2632,
+    "total": 0.2633,
     "tiered": true,
     "note": "經理費：100億以下 0.30%、100–200億 0.28%、200–300億 0.25%、300億以上 0.20%；保管費：30億以下 0.10%、30–200億 0.08%、200–300億 0.06%、300億以上 0.05%",
     "source": "https://www.wantgoo.com/stock/etf/00937b/profile",
@@ -925,7 +925,7 @@
     "freq": "月配",
     "ttm": 0.864,
     "count": 12,
-    "yield": 6.1,
+    "yield": 6.08,
     "last": {
      "date": "2026-11-17",
      "amount": 0.072
@@ -933,24 +933,19 @@
     "next": null
    },
    "flow": {
-    "date": "2026-11-13",
-    "holders_w1": -2640,
-    "holders_w4": -9871,
-    "holders_w13": -14004,
-    "holders_w4_pct": -4.72,
-    "flow_w1": -45.45,
-    "flow_w4": -141.19,
-    "flow_w13": -94.8,
+    "date": "2026-11-20",
+    "holders_w1": -935,
+    "holders_w4": -9450,
+    "holders_w13": -15536,
+    "holders_w4_pct": -4.55,
+    "flow_w1": -4.19,
+    "flow_w4": -110.79,
+    "flow_w13": -128.35,
     "weeks": [
-     [
-      "2026-08-21",
-      597,
-      29.31
-     ],
      [
       "2026-08-28",
       -606,
-      -6.53
+      -6.55
      ],
      [
       "2026-09-04",
@@ -960,22 +955,22 @@
      [
       "2026-09-11",
       -754,
-      -10.86
+      -10.89
      ],
      [
       "2026-09-18",
       -917,
-      -5.11
+      -5.12
      ],
      [
       "2026-09-24",
       -915,
-      -10.86
+      -10.89
      ],
      [
       "2026-10-02",
       1057,
-      16.89
+      16.93
      ],
      [
       "2026-10-08",
@@ -1006,6 +1001,11 @@
       "2026-11-13",
       -2640,
       -45.45
+     ],
+     [
+      "2026-11-20",
+      -935,
+      -4.19
      ]
     ]
    }
@@ -1016,21 +1016,21 @@
    "type": "市值型",
    "market": "上市",
    "mis_name": "凱基台灣TOP50",
-   "price": 12.6,
-   "nav": 12.62,
-   "prem_src": -0.16,
-   "prev_nav": 13.46,
-   "units": 15254844000.0,
-   "units_chg": 105000000.0,
-   "quote_date": "2026-11-20",
+   "price": 12.88,
+   "nav": 12.84,
+   "prem_src": 0.31,
+   "prev_nav": 12.62,
+   "units": 15369844000.0,
+   "units_chg": 115000000.0,
+   "quote_date": "2026-11-23",
    "quote_time": "17:00:02",
-   "prem": -0.158,
-   "aum": 1925.16,
-   "volume": 456407,
-   "volume_date": "2026-11-20",
-   "holders": 1011837,
-   "holders_units": 14798844000.0,
-   "holders_date": "2026-11-13",
+   "prem": 0.312,
+   "aum": 1973.49,
+   "volume": 260599,
+   "volume_date": "2026-11-23",
+   "holders": 1018071,
+   "holders_units": 15149844000.0,
+   "holders_date": "2026-11-20",
    "fee": {
     "mgmt": 0.07,
     "custody": 0.027,
@@ -1050,20 +1050,15 @@
     "next": null
    },
    "flow": {
-    "date": "2026-11-13",
-    "holders_w1": 4355,
-    "holders_w4": 37478,
-    "holders_w13": 94990,
-    "holders_w4_pct": 3.85,
-    "flow_w1": 102.34,
-    "flow_w4": 323.56,
-    "flow_w13": 413.18,
+    "date": "2026-11-20",
+    "holders_w1": 6234,
+    "holders_w4": 31527,
+    "holders_w13": 99576,
+    "holders_w4_pct": 3.2,
+    "flow_w1": 44.3,
+    "flow_w4": 286.02,
+    "flow_w13": 473.61,
     "weeks": [
-     [
-      "2026-08-21",
-      1648,
-      -16.13
-     ],
      [
       "2026-08-28",
       -2215,
@@ -1123,6 +1118,11 @@
       "2026-11-13",
       4355,
       102.34
+     ],
+     [
+      "2026-11-20",
+      6234,
+      44.3
      ]
     ]
    }
@@ -1133,21 +1133,21 @@
    "type": "市值型",
    "market": "上市",
    "mis_name": "富邦科技",
-   "price": 48.4,
-   "nav": 48.77,
-   "prem_src": -0.76,
-   "prev_nav": 51.83,
+   "price": 50.15,
+   "nav": 50.01,
+   "prem_src": 0.28,
+   "prev_nav": 48.76,
    "units": 2717000000.0,
-   "units_chg": 3500000.0,
-   "quote_date": "2026-11-20",
+   "units_chg": 0.0,
+   "quote_date": "2026-11-23",
    "quote_time": "17:05:00",
-   "prem": -0.759,
-   "aum": 1325.08,
-   "volume": 62228,
-   "volume_date": "2026-11-20",
-   "holders": 473964,
-   "holders_units": 2712500000.0,
-   "holders_date": "2026-11-13",
+   "prem": 0.28,
+   "aum": 1358.77,
+   "volume": 44025,
+   "volume_date": "2026-11-23",
+   "holders": 474243,
+   "holders_units": 2713500000.0,
+   "holders_date": "2026-11-20",
    "fee": {
     "mgmt": 0.15,
     "custody": 0.035,
@@ -1162,7 +1162,7 @@
     "freq": "年配",
     "ttm": 1.199,
     "count": 1,
-    "yield": 2.48,
+    "yield": 2.39,
     "last": {
      "date": "2026-04-20",
      "amount": 1.199
@@ -1170,20 +1170,15 @@
     "next": null
    },
    "flow": {
-    "date": "2026-11-13",
-    "holders_w1": -1016,
-    "holders_w4": 6317,
-    "holders_w13": 9177,
-    "holders_w4_pct": 1.35,
-    "flow_w1": 11.78,
-    "flow_w4": 94.13,
-    "flow_w13": 21.99,
+    "date": "2026-11-20",
+    "holders_w1": 279,
+    "holders_w4": 3138,
+    "holders_w13": 10166,
+    "holders_w4_pct": 0.67,
+    "flow_w1": 0.49,
+    "flow_w4": 49.98,
+    "flow_w13": 47.28,
     "weeks": [
-     [
-      "2026-08-21",
-      -710,
-      -24.8
-     ],
      [
       "2026-08-28",
       -3101,
@@ -1243,6 +1238,11 @@
       "2026-11-13",
       -1016,
       11.78
+     ],
+     [
+      "2026-11-20",
+      279,
+      0.49
      ]
     ]
    }
@@ -1253,21 +1253,21 @@
    "type": "高股息",
    "market": "上市",
    "mis_name": "復華台灣科技優息",
-   "price": 21.07,
-   "nav": 21.13,
-   "prem_src": -0.28,
-   "prev_nav": 22.52,
+   "price": 21.71,
+   "nav": 21.61,
+   "prem_src": 0.46,
+   "prev_nav": 21.13,
    "units": 6216139000.0,
    "units_chg": 0.0,
-   "quote_date": "2026-11-20",
-   "quote_time": "16:59:51",
-   "prem": -0.284,
-   "aum": 1313.47,
-   "volume": 72695,
-   "volume_date": "2026-11-20",
-   "holders": 506989,
-   "holders_units": 6040139000.0,
-   "holders_date": "2026-11-13",
+   "quote_date": "2026-11-23",
+   "quote_time": "16:59:55",
+   "prem": 0.463,
+   "aum": 1343.31,
+   "volume": 51549,
+   "volume_date": "2026-11-23",
+   "holders": 513926,
+   "holders_units": 6208639000.0,
+   "holders_date": "2026-11-20",
    "fee": {
     "mgmt": 0.3,
     "custody": 0.03,
@@ -1282,7 +1282,7 @@
     "freq": "月配",
     "ttm": 2.82,
     "count": 12,
-    "yield": 13.38,
+    "yield": 12.99,
     "last": {
      "date": "2026-11-18",
      "amount": 0.38
@@ -1290,20 +1290,15 @@
     "next": null
    },
    "flow": {
-    "date": "2026-11-13",
-    "holders_w1": 6260,
-    "holders_w4": 31478,
-    "holders_w13": 72694,
-    "holders_w4_pct": 6.62,
-    "flow_w1": 34.0,
-    "flow_w4": 165.32,
-    "flow_w13": 323.65,
+    "date": "2026-11-20",
+    "holders_w1": 6937,
+    "holders_w4": 29871,
+    "holders_w13": 70203,
+    "holders_w4_pct": 6.17,
+    "flow_w1": 35.6,
+    "flow_w4": 153.06,
+    "flow_w13": 313.09,
     "weeks": [
-     [
-      "2026-08-21",
-      9428,
-      46.16
-     ],
      [
       "2026-08-28",
       25,
@@ -1363,6 +1358,11 @@
       "2026-11-13",
       6260,
       34.0
+     ],
+     [
+      "2026-11-20",
+      6937,
+      35.6
      ]
     ]
    }
@@ -1373,21 +1373,21 @@
    "type": "高股息",
    "market": "上市",
    "mis_name": "群益半導體收益",
-   "price": 25.61,
-   "nav": 25.71,
-   "prem_src": -0.39,
-   "prev_nav": 27.86,
-   "units": 2315397000.0,
-   "units_chg": 2000000.0,
-   "quote_date": "2026-11-20",
+   "price": 27.15,
+   "nav": 27.03,
+   "prem_src": 0.44,
+   "prev_nav": 25.71,
+   "units": 2319897000.0,
+   "units_chg": 4500000.0,
+   "quote_date": "2026-11-23",
    "quote_time": "15:00:00",
-   "prem": -0.389,
-   "aum": 595.29,
-   "volume": 43690,
-   "volume_date": "2026-11-20",
-   "holders": 247265,
-   "holders_units": 2280897000.0,
-   "holders_date": "2026-11-13",
+   "prem": 0.444,
+   "aum": 627.07,
+   "volume": 38706,
+   "volume_date": "2026-11-23",
+   "holders": 249112,
+   "holders_units": 2313397000.0,
+   "holders_date": "2026-11-20",
    "fee": {
     "mgmt": 0.4,
     "custody": 0.035,
@@ -1402,7 +1402,7 @@
     "freq": "季配",
     "ttm": 5.73,
     "count": 4,
-    "yield": 22.37,
+    "yield": 21.1,
     "last": {
      "date": "2026-10-19",
      "amount": 2.0
@@ -1410,20 +1410,15 @@
     "next": null
    },
    "flow": {
-    "date": "2026-11-13",
-    "holders_w1": 1106,
-    "holders_w4": 25218,
-    "holders_w13": 107006,
-    "holders_w4_pct": 11.36,
-    "flow_w1": 13.77,
-    "flow_w4": 172.46,
-    "flow_w13": 330.45,
+    "date": "2026-11-20",
+    "holders_w1": 1847,
+    "holders_w4": 12256,
+    "holders_w13": 107341,
+    "holders_w4_pct": 5.17,
+    "flow_w1": 8.36,
+    "flow_w4": 66.43,
+    "flow_w13": 339.34,
     "weeks": [
-     [
-      "2026-08-21",
-      1512,
-      -0.53
-     ],
      [
       "2026-08-28",
       76,
@@ -1483,6 +1478,11 @@
       "2026-11-13",
       1106,
       13.77
+     ],
+     [
+      "2026-11-20",
+      1847,
+      8.36
      ]
     ]
    }
@@ -1493,21 +1493,21 @@
    "type": "海外",
    "market": "上市",
    "mis_name": "國泰智能電動車",
-   "price": 37.62,
-   "nav": 38.02,
-   "prem_src": -1.05,
-   "prev_nav": 38.69,
-   "units": 352884000.0,
-   "units_chg": 0.0,
-   "quote_date": "2026-11-20",
-   "quote_time": "16:59:47",
-   "prem": -1.052,
-   "aum": 134.17,
-   "volume": 1303,
-   "volume_date": "2026-11-20",
-   "holders": 55120,
+   "price": 36.61,
+   "nav": 35.36,
+   "prem_src": 3.54,
+   "prev_nav": 35.22,
+   "units": 352384000.0,
+   "units_chg": -500000.0,
+   "quote_date": "2026-11-23",
+   "quote_time": "16:59:54",
+   "prem": 3.535,
+   "aum": 124.6,
+   "volume": 864,
+   "volume_date": "2026-11-23",
+   "holders": 54985,
    "holders_units": 352884000.0,
-   "holders_date": "2026-11-13",
+   "holders_date": "2026-11-20",
    "fee": {
     "mgmt": 0.9,
     "custody": 0.2,
@@ -1527,20 +1527,15 @@
     "next": null
    },
    "flow": {
-    "date": "2026-11-13",
-    "holders_w1": -172,
-    "holders_w4": -442,
-    "holders_w13": -2300,
-    "holders_w4_pct": -0.8,
-    "flow_w1": 0.85,
-    "flow_w4": 1.29,
-    "flow_w13": -3.18,
+    "date": "2026-11-20",
+    "holders_w1": -135,
+    "holders_w4": -569,
+    "holders_w13": -2378,
+    "holders_w4_pct": -1.02,
+    "flow_w1": 0.0,
+    "flow_w4": 0.85,
+    "flow_w13": -2.75,
     "weeks": [
-     [
-      "2026-08-21",
-      -57,
-      -0.43
-     ],
      [
       "2026-08-28",
       -90,
@@ -1600,6 +1595,11 @@
       "2026-11-13",
       -172,
       0.85
+     ],
+     [
+      "2026-11-20",
+      -135,
+      0.0
      ]
     ]
    }
@@ -1610,21 +1610,21 @@
    "type": "海外",
    "market": "上市",
    "mis_name": "中信台日韓PCB",
-   "price": 5.77,
-   "nav": 5.86,
-   "prem_src": -1.54,
-   "prev_nav": 6.45,
-   "units": 1518545000.0,
-   "units_chg": -5000000.0,
-   "quote_date": "2026-11-20",
-   "quote_time": "17:00:02",
-   "prem": -1.536,
-   "aum": 88.99,
-   "volume": 63579,
-   "volume_date": "2026-11-20",
-   "holders": 87556,
-   "holders_units": 1516045000.0,
-   "holders_date": "2026-11-13",
+   "price": 6.28,
+   "nav": 6.07,
+   "prem_src": 3.46,
+   "prev_nav": 5.86,
+   "units": 1501045000.0,
+   "units_chg": -17500000.0,
+   "quote_date": "2026-11-23",
+   "quote_time": "17:00:01",
+   "prem": 3.46,
+   "aum": 91.11,
+   "volume": 54538,
+   "volume_date": "2026-11-23",
+   "holders": 87830,
+   "holders_units": 1523545000.0,
+   "holders_date": "2026-11-20",
    "fee": {
     "mgmt": 0.75,
     "custody": 0.1,
@@ -1644,13 +1644,13 @@
     "next": null
    },
    "flow": {
-    "date": "2026-11-13",
-    "holders_w1": 485,
-    "holders_w4": 12494,
+    "date": "2026-11-20",
+    "holders_w1": 274,
+    "holders_w4": 9328,
     "holders_w13": null,
-    "holders_w4_pct": 16.64,
-    "flow_w1": 8.32,
-    "flow_w4": 40.39,
+    "holders_w4_pct": 11.88,
+    "flow_w1": 0.44,
+    "flow_w4": 30.24,
     "flow_w13": null,
     "weeks": [
      [
@@ -1702,6 +1702,11 @@
       "2026-11-13",
       485,
       8.32
+     ],
+     [
+      "2026-11-20",
+      274,
+      0.44
      ]
     ]
    }
@@ -1712,21 +1717,21 @@
    "type": "海外",
    "market": "上市",
    "mis_name": "富邦越南",
-   "price": 17.26,
+   "price": 17.52,
    "nav": 17.7,
-   "prem_src": -2.49,
-   "prev_nav": 17.75,
-   "units": 562238000.0,
-   "units_chg": 0.0,
-   "quote_date": "2026-11-20",
+   "prem_src": -1.02,
+   "prev_nav": 17.7,
+   "units": 559738000.0,
+   "units_chg": -2500000.0,
+   "quote_date": "2026-11-23",
    "quote_time": "17:05:00",
-   "prem": -2.486,
-   "aum": 99.52,
-   "volume": 4184,
-   "volume_date": "2026-11-20",
-   "holders": 46274,
-   "holders_units": 575738000.0,
-   "holders_date": "2026-11-13",
+   "prem": -1.017,
+   "aum": 99.07,
+   "volume": 3503,
+   "volume_date": "2026-11-23",
+   "holders": 45989,
+   "holders_units": 562238000.0,
+   "holders_date": "2026-11-20",
    "fee": {
     "mgmt": 0.99,
     "custody": 0.23,
@@ -1746,20 +1751,15 @@
     "next": null
    },
    "flow": {
-    "date": "2026-11-13",
-    "holders_w1": -342,
-    "holders_w4": -1715,
-    "holders_w13": -3192,
-    "holders_w4_pct": -3.57,
-    "flow_w1": -1.37,
-    "flow_w4": -2.82,
-    "flow_w13": -6.16,
+    "date": "2026-11-20",
+    "holders_w1": -285,
+    "holders_w4": -1846,
+    "holders_w13": -3750,
+    "holders_w4_pct": -3.86,
+    "flow_w1": -2.39,
+    "flow_w4": -5.21,
+    "flow_w13": -8.37,
     "weeks": [
-     [
-      "2026-08-21",
-      273,
-      -0.18
-     ],
      [
       "2026-08-28",
       -593,
@@ -1819,6 +1819,11 @@
       "2026-11-13",
       -342,
       -1.37
+     ],
+     [
+      "2026-11-20",
+      -285,
+      -2.39
      ]
     ]
    }
@@ -1829,25 +1834,25 @@
    "type": "海外",
    "market": "上市",
    "mis_name": "台新美國電力基建息收ETF基金（原名稱：新光美國電力基建息收ETF基金）",
-   "price": 13.6,
-   "nav": 13.83,
-   "prem_src": -1.67,
-   "prev_nav": 13.81,
-   "units": 595316000.0,
-   "units_chg": -2500000.0,
-   "quote_date": "2026-11-20",
-   "quote_time": "16:59:45",
-   "prem": -1.663,
-   "aum": 82.33,
-   "volume": 7017,
-   "volume_date": "2026-11-20",
-   "holders": 52505,
-   "holders_units": 612316000.0,
-   "holders_date": "2026-11-13",
+   "price": 13.56,
+   "nav": 13.26,
+   "prem_src": 2.22,
+   "prev_nav": 13.27,
+   "units": 592316000.0,
+   "units_chg": -3000000.0,
+   "quote_date": "2026-11-23",
+   "quote_time": "16:59:46",
+   "prem": 2.262,
+   "aum": 78.54,
+   "volume": 6540,
+   "volume_date": "2026-11-23",
+   "holders": 51944,
+   "holders_units": 595316000.0,
+   "holders_date": "2026-11-20",
    "fee": {
     "mgmt": 0.68,
-    "custody": 0.1561,
-    "total": 0.8361,
+    "custody": 0.1564,
+    "total": 0.8364,
     "tiered": true,
     "note": "經理費 0.68%；保管費 50億以下 0.16%、超過部分 0.15%",
     "source": "https://www.stockfeel.com.tw/?p=251831",
@@ -1858,7 +1863,7 @@
     "freq": "季配",
     "ttm": 0.4,
     "count": 2,
-    "yield": 2.94,
+    "yield": 2.95,
     "last": {
      "date": "2026-10-16",
      "amount": 0.3
@@ -1866,20 +1871,15 @@
     "next": null
    },
    "flow": {
-    "date": "2026-11-13",
-    "holders_w1": -485,
-    "holders_w4": -1294,
-    "holders_w13": -1025,
-    "holders_w4_pct": -2.41,
-    "flow_w1": 0.0,
-    "flow_w4": -1.15,
-    "flow_w13": 1.81,
+    "date": "2026-11-20",
+    "holders_w1": -561,
+    "holders_w4": -1993,
+    "holders_w13": -1752,
+    "holders_w4_pct": -3.7,
+    "flow_w1": -2.35,
+    "flow_w4": -4.3,
+    "flow_w13": 1.06,
     "weeks": [
-     [
-      "2026-08-21",
-      166,
-      -1.6
-     ],
      [
       "2026-08-28",
       898,
@@ -1939,6 +1939,11 @@
       "2026-11-13",
       -485,
       0.0
+     ],
+     [
+      "2026-11-20",
+      -561,
+      -2.35
      ]
     ]
    }
@@ -1949,21 +1954,21 @@
    "type": "海外",
    "market": "上市",
    "mis_name": "元大全球5G",
-   "price": 67.0,
-   "nav": 67.36,
-   "prem_src": -0.53,
-   "prev_nav": 69.98,
+   "price": 66.1,
+   "nav": 67.03,
+   "prem_src": -1.39,
+   "prev_nav": 63.8,
    "units": 93524000.0,
-   "units_chg": 0.0,
-   "quote_date": "2026-11-20",
+   "units_chg": -500000.0,
+   "quote_date": "2026-11-23",
    "quote_time": "17:00:00",
-   "prem": -0.534,
-   "aum": 63.0,
-   "volume": 201,
-   "volume_date": "2026-11-20",
-   "holders": 20682,
-   "holders_units": 94524000.0,
-   "holders_date": "2026-11-13",
+   "prem": -1.387,
+   "aum": 62.69,
+   "volume": 327,
+   "volume_date": "2026-11-23",
+   "holders": 20608,
+   "holders_units": 94024000.0,
+   "holders_date": "2026-11-20",
    "fee": {
     "mgmt": 0.9,
     "custody": 0.23,
@@ -1983,20 +1988,15 @@
     "next": null
    },
    "flow": {
-    "date": "2026-11-13",
-    "holders_w1": -83,
-    "holders_w4": -133,
-    "holders_w13": -2415,
-    "holders_w4_pct": -0.64,
-    "flow_w1": -0.39,
-    "flow_w4": 0.96,
-    "flow_w13": 0.04,
+    "date": "2026-11-20",
+    "holders_w1": -74,
+    "holders_w4": -263,
+    "holders_w13": -2723,
+    "holders_w4_pct": -1.26,
+    "flow_w1": -0.34,
+    "flow_w4": 0.62,
+    "flow_w13": -0.3,
     "weeks": [
-     [
-      "2026-08-21",
-      234,
-      0.0
-     ],
      [
       "2026-08-28",
       184,
@@ -2056,6 +2056,11 @@
       "2026-11-13",
       -83,
       -0.39
+     ],
+     [
+      "2026-11-20",
+      -74,
+      -0.34
      ]
     ]
    }
@@ -2066,25 +2071,25 @@
    "type": "海外",
    "market": "上市",
    "mis_name": "貝萊德世界股票",
-   "price": 9.6,
-   "nav": 9.59,
-   "prem_src": 0.06,
-   "prev_nav": 9.62,
-   "units": 887804000.0,
-   "units_chg": 4000000.0,
-   "quote_date": "2026-11-20",
+   "price": 9.53,
+   "nav": 9.45,
+   "prem_src": 0.88,
+   "prev_nav": 9.3,
+   "units": 897804000.0,
+   "units_chg": 10000000.0,
+   "quote_date": "2026-11-23",
    "quote_time": "17:09:45",
-   "prem": 0.104,
-   "aum": 85.14,
-   "volume": 15106,
-   "volume_date": "2026-11-20",
-   "holders": 59420,
-   "holders_units": 878804000.0,
-   "holders_date": "2026-11-13",
+   "prem": 0.847,
+   "aum": 84.84,
+   "volume": 20610,
+   "volume_date": "2026-11-23",
+   "holders": 59762,
+   "holders_units": 883804000.0,
+   "holders_date": "2026-11-20",
    "fee": {
     "mgmt": 0.45,
-    "custody": 0.1376,
-    "total": 0.5876,
+    "custody": 0.1377,
+    "total": 0.5877,
     "tiered": true,
     "note": "經理費 150億以下 0.45%、超過部分 0.40%；保管費 50億以下 0.15%、50–100億 0.12%、100億以上 0.10%",
     "source": "https://www.businesstoday.com.tw/article/category/183013/post/202607140024/",
@@ -2100,20 +2105,15 @@
     "next": null
    },
    "flow": {
-    "date": "2026-11-13",
-    "holders_w1": 430,
-    "holders_w4": -1829,
-    "holders_w13": 14782,
-    "holders_w4_pct": -2.99,
-    "flow_w1": 1.52,
-    "flow_w4": 1.67,
-    "flow_w13": 33.26,
+    "date": "2026-11-20",
+    "holders_w1": 342,
+    "holders_w4": -744,
+    "holders_w13": 9003,
+    "holders_w4_pct": -1.23,
+    "flow_w1": 0.48,
+    "flow_w4": 2.0,
+    "flow_w13": 26.6,
     "weeks": [
-     [
-      "2026-08-21",
-      6121,
-      7.14
-     ],
      [
       "2026-08-28",
       3873,
@@ -2173,6 +2173,11 @@
       "2026-11-13",
       430,
       1.52
+     ],
+     [
+      "2026-11-20",
+      342,
+      0.48
      ]
     ]
    }
@@ -2183,21 +2188,21 @@
    "type": "海外",
    "market": "上市",
    "mis_name": "元大全球AI",
-   "price": 89.85,
-   "nav": 89.93,
-   "prem_src": -0.09,
-   "prev_nav": 91.55,
+   "price": 86.9,
+   "nav": 87.96,
+   "prem_src": -1.21,
+   "prev_nav": 83.9,
    "units": 47748000.0,
    "units_chg": 0.0,
-   "quote_date": "2026-11-20",
+   "quote_date": "2026-11-23",
    "quote_time": "17:00:00",
-   "prem": -0.089,
-   "aum": 42.94,
-   "volume": 208,
-   "volume_date": "2026-11-20",
-   "holders": 22360,
+   "prem": -1.205,
+   "aum": 42.0,
+   "volume": 245,
+   "volume_date": "2026-11-23",
+   "holders": 22304,
    "holders_units": 47748000.0,
-   "holders_date": "2026-11-13",
+   "holders_date": "2026-11-20",
    "fee": {
     "mgmt": 0.9,
     "custody": 0.26,
@@ -2217,20 +2222,15 @@
     "next": null
    },
    "flow": {
-    "date": "2026-11-13",
-    "holders_w1": -2,
-    "holders_w4": 68,
-    "holders_w13": -470,
-    "holders_w4_pct": 0.31,
+    "date": "2026-11-20",
+    "holders_w1": -56,
+    "holders_w4": -109,
+    "holders_w13": -522,
+    "holders_w4_pct": -0.49,
     "flow_w1": 0.0,
     "flow_w4": 0.93,
     "flow_w13": -0.75,
     "weeks": [
-     [
-      "2026-08-21",
-      -4,
-      0.0
-     ],
      [
       "2026-08-28",
       -5,
@@ -2290,6 +2290,11 @@
       "2026-11-13",
       -2,
       0.0
+     ],
+     [
+      "2026-11-20",
+      -56,
+      0.0
      ]
     ]
    }
@@ -2300,21 +2305,21 @@
    "type": "海外",
    "market": "上市",
    "mis_name": "大華韓國KOSPI 50",
-   "price": 7.73,
-   "nav": 7.83,
-   "prem_src": -1.28,
-   "prev_nav": 8.33,
-   "units": 552870000.0,
-   "units_chg": -12500000.0,
-   "quote_date": "2026-11-20",
+   "price": 7.6,
+   "nav": 7.52,
+   "prem_src": 1.06,
+   "prev_nav": 7.83,
+   "units": 541870000.0,
+   "units_chg": -11000000.0,
+   "quote_date": "2026-11-23",
    "quote_time": "16:59:56",
-   "prem": -1.277,
-   "aum": 43.29,
-   "volume": 21040,
-   "volume_date": "2026-11-20",
-   "holders": 19399,
-   "holders_units": 574870000.0,
-   "holders_date": "2026-11-13",
+   "prem": 1.064,
+   "aum": 40.75,
+   "volume": 40350,
+   "volume_date": "2026-11-23",
+   "holders": 19320,
+   "holders_units": 565370000.0,
+   "holders_date": "2026-11-20",
    "fee": {
     "mgmt": 0.3,
     "custody": 0.14,
@@ -2334,14 +2339,14 @@
     "next": null
    },
    "flow": {
-    "date": "2026-11-13",
-    "holders_w1": -56,
-    "holders_w4": 762,
-    "holders_w13": null,
-    "holders_w4_pct": 4.09,
-    "flow_w1": 0.34,
-    "flow_w4": 8.66,
-    "flow_w13": null,
+    "date": "2026-11-20",
+    "holders_w1": -79,
+    "holders_w4": -117,
+    "holders_w13": 11467,
+    "holders_w4_pct": -0.6,
+    "flow_w1": -0.74,
+    "flow_w4": -2.8,
+    "flow_w13": 25.37,
     "weeks": [
      [
       "2026-08-28",
@@ -2402,6 +2407,11 @@
       "2026-11-13",
       -56,
       0.34
+     ],
+     [
+      "2026-11-20",
+      -79,
+      -0.74
      ]
     ]
    }
@@ -2412,25 +2422,25 @@
    "type": "債券",
    "market": "上櫃",
    "mis_name": "中信高評級公司債",
-   "price": 32.6,
-   "nav": 32.6874,
-   "prem_src": -0.27,
-   "prev_nav": 32.6629,
-   "units": 3335290000.0,
-   "units_chg": -1500000.0,
-   "quote_date": "2026-11-20",
-   "quote_time": "17:00:02",
-   "prem": -0.267,
-   "aum": 1090.22,
-   "volume": 9811,
-   "volume_date": "2026-11-20",
-   "holders": 38682,
-   "holders_units": 3337290000.0,
-   "holders_date": "2026-11-13",
+   "price": 32.8,
+   "nav": 32.7173,
+   "prem_src": 0.25,
+   "prev_nav": 32.9332,
+   "units": 3323290000.0,
+   "units_chg": -12000000.0,
+   "quote_date": "2026-11-23",
+   "quote_time": "17:00:01",
+   "prem": 0.253,
+   "aum": 1087.29,
+   "volume": 5570,
+   "volume_date": "2026-11-23",
+   "holders": 38530,
+   "holders_units": 3336790000.0,
+   "holders_date": "2026-11-20",
    "fee": {
-    "mgmt": 0.2211,
+    "mgmt": 0.2212,
     "custody": 0.0879,
-    "total": 0.309,
+    "total": 0.3091,
     "tiered": true,
     "note": "經理費：30億以下 0.40%、30–200億 0.30%、200億以上 0.20%；保管費：30億以下 0.14%、30–200億 0.12%、200億以上 0.08%",
     "source": "https://www.wantgoo.com/stock/etf/00772b/profile",
@@ -2441,7 +2451,7 @@
     "freq": "月配",
     "ttm": 1.661,
     "count": 12,
-    "yield": 5.1,
+    "yield": 5.06,
     "last": {
      "date": "2026-11-17",
      "amount": 0.14
@@ -2449,20 +2459,15 @@
     "next": null
    },
    "flow": {
-    "date": "2026-11-13",
-    "holders_w1": -460,
-    "holders_w4": -1416,
-    "holders_w13": -2262,
-    "holders_w4_pct": -3.53,
-    "flow_w1": -8.79,
-    "flow_w4": -12.54,
-    "flow_w13": -7.58,
+    "date": "2026-11-20",
+    "holders_w1": -152,
+    "holders_w4": -1371,
+    "holders_w13": -2454,
+    "holders_w4_pct": -3.44,
+    "flow_w1": -0.16,
+    "flow_w4": -19.99,
+    "flow_w13": -11.0,
     "weeks": [
-     [
-      "2026-08-21",
-      40,
-      3.27
-     ],
      [
       "2026-08-28",
       -100,
@@ -2471,7 +2476,7 @@
      [
       "2026-09-04",
       -22,
-      1.63
+      1.64
      ],
      [
       "2026-09-11",
@@ -2522,6 +2527,11 @@
       "2026-11-13",
       -460,
       -8.79
+     ],
+     [
+      "2026-11-20",
+      -152,
+      -0.16
      ]
     ]
    }
